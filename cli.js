@@ -3,33 +3,28 @@
 const yargs = require("yargs")
   .usage(
     `
-Usage: $0 [-p server_port] [-f input_file1 input_file2 ...] [--openBrowser] [--autoClose 2000] [--verbose]
+Usage: $0 -f input_file1 [input_file2 ...] [-p server_port] [--openBrowser] [--autoClose 2000] [--verbose]
 		
 Starts Editor server
 `
   )
   .options({
-    port: {
-      alias: "p",
-      type: "number",
-      default: 3001,
-      describe: "HTTP Server port",
-    },
     file: {
       alias: "f",
       type: "array",
       demandOption: "Input files needed",
       describe: "Input translation files",
     },
+    port: {
+      alias: "p",
+      type: "number",
+      default: 3001,
+      describe: "HTTP Server port",
+    },
     openBrowser: {
       type: "boolean",
       default: false,
       describe: "Auto-open the default browser with the editor on start",
-    },
-    verbose: {
-      type: "boolean",
-      default: false,
-      describe: "Output debugging info",
     },
     autoClose: {
       type: "number",
@@ -37,6 +32,11 @@ Starts Editor server
       defaultDescription: "0 (disabled)",
       describe:
         "Timeout (in msecs) after which the server stops when all clients are disconnected",
+    },
+    verbose: {
+      type: "boolean",
+      default: false,
+      describe: "Output debugging info",
     },
   })
   .strict()
@@ -50,14 +50,24 @@ const express = require("express");
 const path = require("path");
 const http = require("http");
 const WebSocket = require("ws");
+const {
+  getLanguageData,
+  initializeLanguages,
+  handleAction,
+} = require("./src/server/json");
+const { Action } = require("./src/protocol");
+
+const langs = initializeLanguages(argv.file);
+if (argv.verbose) {
+  console.log("Initialized with languages", langs);
+}
 
 const app = express();
 
 app.get("/data", (req, res) => {
   if (argv.verbose) console.log("Requested", req.url);
-  const content = require(path.resolve(__dirname, argv.file[0]));
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.send(JSON.stringify(content));
+  res.send(JSON.stringify(getLanguageData()));
 });
 
 app.get("/", (req, res) => {
@@ -74,10 +84,10 @@ const server = http.createServer(app);
 
 const wss = new WebSocket.Server({ server });
 
-let clientsConnected = 0;
+const clientsConnected = [];
 let autoClose;
 const checkAutoClose = () => {
-  if (clientsConnected <= 0 && argv.autoClose) {
+  if (!clientsConnected.length && argv.autoClose) {
     autoClose = setTimeout(() => {
       console.log("Auto-closing, no connected clients");
       process.exit();
@@ -93,17 +103,24 @@ const stopAutoClose = () => {
 
 wss.on("connection", (connection) => {
   if (argv.verbose) console.log("Client connected");
-  clientsConnected++;
+  clientsConnected.push(connection);
   stopAutoClose();
 
   connection.on("close", () => {
     if (argv.verbose) console.log("Client disconnected");
-    clientsConnected--;
-    checkAutoClose();
+    const index = clientsConnected.findIndex((c) => c === connection);
+    if (index !== -1) {
+      clientsConnected.splice(index, 1);
+      checkAutoClose();
+    }
   });
 
   connection.on("message", (message) => {
     if (argv.verbose) console.log("Message", message);
+    handleAction(JSON.parse(message));
+    clientsConnected.forEach((c) =>
+      c.send(JSON.stringify(Action.dataUpdate(getLanguageData())))
+    );
   });
 });
 checkAutoClose();

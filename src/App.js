@@ -1,35 +1,55 @@
-import "./App.css";
 import Footer from "./Footer";
-
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import { useCallback, useEffect, useState } from "react";
+import Tree from "./tree/Tree";
+import styled from "styled-components";
+import { ActionType } from "./protocol";
 
 export default function App() {
   const url = new URL(window.location.href);
   const serverPort = url.searchParams.get("serverPort") || url.port;
-  const { /* sendMessage, */ readyState } = useWebSocket(
+
+  const [data, setData] = useState();
+  const handleIncomingMessage = useCallback((action) => {
+    switch (action.action) {
+      case ActionType.DATA_UPDATE:
+        setData(action.data);
+        break;
+      default:
+        console.error("Invalid action:", action.action);
+        break;
+    }
+  }, []);
+
+  const { sendMessage, readyState } = useWebSocket(
     `ws://${url.hostname}:${serverPort}`,
     {
       retryOnError: true,
       shouldReconnect: () => true,
       reconnectAttempts: 100,
+      onMessage: (ev) => handleIncomingMessage(JSON.parse(ev.data)),
     }
   );
-
-  const [data, setData] = useState();
 
   const getStatusLabel = useCallback(() => {
     switch (readyState) {
       case ReadyState.OPEN:
-        return <div className="AppStatus-Success">Connected</div>;
+        return "Connected";
       case ReadyState.CONNECTING:
-        return <div className="AppStatus-Loading">Connecting</div>;
+        return "Connecting";
       case ReadyState.CLOSED:
-        return <div className="AppStatus-Error">Server not reachable</div>;
+        return "Server not reachable";
       default:
-        return <div className="AppStatus-Error">Unknown</div>;
+        return "Unknown";
     }
   }, [readyState]);
+
+  const onSendMessage = useCallback(
+    (message) => {
+      sendMessage(JSON.stringify(message));
+    },
+    [sendMessage]
+  );
 
   useEffect(() => {
     if (readyState === ReadyState.OPEN) {
@@ -40,13 +60,49 @@ export default function App() {
   }, [readyState, serverPort, url.hostname]);
 
   return (
-    <div className="App">
-      {getStatusLabel()}
-      <div id="data" className="App-section">
-        {data ? JSON.stringify(data) : "No data"}
-      </div>
+    <AppContainer>
+      <ConnectionStatus status={readyState}>
+        {getStatusLabel()}
+      </ConnectionStatus>
+      <Content>
+        {!data && "No data"}
+        <Tree data={data} onSendMessage={onSendMessage} />
+      </Content>
 
       <Footer />
-    </div>
+    </AppContainer>
   );
 }
+
+const AppContainer = styled.div`
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 400;
+`;
+
+const Content = styled.div`
+  flex: 1;
+  min-width: 800px;
+  max-width: 95vw;
+  margin: 0 40px;
+  padding-top: 15px;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const ConnectionStatus = styled.div`
+  color: ${({ status }) =>
+    status === ReadyState.OPEN
+      ? "darkgreen"
+      : status === ReadyState.CONNECTING
+      ? "black"
+      : "darkred"};
+`;
