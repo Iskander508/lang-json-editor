@@ -18,6 +18,8 @@ jobs:
         node-version: '12.x'
     - name: Install dependencies
       run: yarn
+    - name: Bump version
+      run: npm --no-git-tag-version version patch
     - name: Build
       run: yarn build
     - name: Commit built files

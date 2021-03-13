@@ -1,12 +1,18 @@
 {
   "name": "lang_json_editor",
   "version": "0.1.0",
-  "private": true,
+  "bin": "./cli.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "open": "^8.0.2",
+    "ws": "^7.4.4",
+    "yargs": "^16.2.0"
+  },
   "devDependencies": {
-    "mdbreact": "^5.0.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
-    "react-scripts": "4.0.1"
+    "react-scripts": "4.0.1",
+    "react-use-websocket": "^2.5.0"
   },
   "scripts": {
     "start": "react-scripts start",
