@@ -1,0 +1,41 @@
+.App {
+  text-align: center;
+  background-color: #ffffff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 400;
+}
+
+.App-NavBar {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  background-color: cadetblue !important;
+  z-index: 3;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 400;
+}
+
+.App-section {
+  width: 100%;
+  padding-top: 100px;
+  position: relative;
+}
+
+.App-footer {
+  padding-right: 15px;
+  text-align: end;
+}
