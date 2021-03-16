@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-export const Button = styled.button`
+export const Button = styled.span`
   cursor: pointer;
   vertical-align: middle;
   padding: 0;
@@ -13,6 +13,9 @@ export const Button = styled.button`
   &:hover {
     opacity: 1;
     font-weight: bold;
+  }
+
+  &:hover > * {
     transform: scale(1.5, 1.5);
   }
 `;

@@ -50,6 +50,8 @@ const express = require("express");
 const path = require("path");
 const http = require("http");
 const WebSocket = require("ws");
+const { translate } = require("bing-translate-api");
+
 const {
   getLanguageData,
   initializeLanguages,
@@ -68,6 +70,19 @@ app.get("/data", (req, res) => {
   if (argv.verbose) console.log("Requested", req.url);
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.send(JSON.stringify(getLanguageData()));
+});
+
+app.get("/translate", (req, res) => {
+  if (argv.verbose) console.log("Requested", req.url, req.query);
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  const { text, from, to } = req.query;
+  translate(text, from, to)
+    .then(({ translation }) => {
+      res.send(translation);
+    })
+    .catch((err) => {
+      res.status(404).send(err.toString());
+    });
 });
 
 app.get("/", (req, res) => {

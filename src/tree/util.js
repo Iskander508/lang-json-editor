@@ -13,3 +13,15 @@ export const useEscapeKey = (onEscape) => {
     };
   }, [onEscape]);
 };
+
+export const getServerHost = () => {
+  const url = new URL(window.location.href);
+  const serverPort = url.searchParams.get("serverPort") || url.port;
+  return `${url.hostname}:${serverPort}`;
+};
+
+export const translate = (text, from, to) => {
+  const url = new URL(`http://${getServerHost()}/translate`);
+  url.search = new URLSearchParams({ text, from, to }).toString();
+  return fetch(url).then((response) => response.text());
+};

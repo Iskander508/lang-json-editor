@@ -2,7 +2,9 @@ import { useState, useContext, useEffect, useCallback } from "react";
 import ControlsContainer from "./components/ControlsContainer";
 import styled from "styled-components";
 import { TreeContext } from "./Context";
-import { useEscapeKey } from "./util";
+import { translate, useEscapeKey } from "./util";
+import { Button } from "./components/Button";
+import { translate as translateImage } from "./images";
 
 function Value({ language, editing, value, onChange, onEdit, hint }) {
   const [autoFocus, setAutoFocus] = useState(false);
@@ -11,6 +13,15 @@ function Value({ language, editing, value, onChange, onEdit, hint }) {
       setAutoFocus(false);
     }
   }, [editing]);
+
+  const [hintTranslation, setHintTranslation] = useState(false);
+  useEffect(() => {
+    if (editing && hint) {
+      translate(hint.value, hint.language, language)
+        .then(setHintTranslation)
+        .catch((err) => console.warn(err));
+    }
+  }, [editing, hint, language]);
 
   const cancelEdit = useCallback(() => onEdit(false), [onEdit]);
   useEscapeKey(editing && cancelEdit);
@@ -25,6 +36,18 @@ function Value({ language, editing, value, onChange, onEdit, hint }) {
             value={value || ""}
             onChange={(event) => onChange(event.target.value)}
           />
+          {hintTranslation ? (
+            <Button
+              title={`Use auto-translation: "${hintTranslation}"`}
+              onClick={() => onChange(hintTranslation)}
+            >
+              <img
+                src={translateImage}
+                width="12"
+                alt={`Use auto-translation: "${hintTranslation}"`}
+              />
+            </Button>
+          ) : null}
         </>
       ) : (
         <ValueWrapper
@@ -56,11 +79,12 @@ export function ValueNode({ node }) {
 
   return (
     <Container
-      title={node.id}
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >
-      <Label missingTranslation={missingTranslation}>{node.name}</Label>
+      <Label title={node.id} missingTranslation={missingTranslation}>
+        {node.name}
+      </Label>
       <ValuesContainer>
         {languages.map((language) => {
           const hintLanguage = Object.keys(values).find(

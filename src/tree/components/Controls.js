@@ -35,7 +35,9 @@ function Controls({ operation, buttons, visible = true, copyString }) {
       )}
       {copyString ? (
         <CopyToClipboard text={copyString} title={`copy "${copyString}"`}>
-          <CopyImage src={copy} width="12" alt={`copy ${copyString}`} />
+          <Button>
+            <img src={copy} width="12" alt={`copy ${copyString}`} />
+          </Button>
         </CopyToClipboard>
       ) : null}
     </Container>
@@ -114,18 +116,4 @@ const Container = styled.div`
 const Operation = styled.span`
   font-size: 10px;
   opacity: 0.8;
-`;
-
-const CopyImage = styled.img`
-  cursor: pointer;
-  padding: 0;
-  border: none;
-  background: none;
-  opacity: 0.5;
-  margin: 0 3px;
-
-  &:hover {
-    opacity: 1;
-    transform: scale(1.5, 1.5);
-  }
 `;

@@ -4,10 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import Tree from "./tree/Tree";
 import styled from "styled-components";
 import { ActionType } from "./protocol";
+import { getServerHost } from "./tree/util";
 
 export default function App() {
-  const url = new URL(window.location.href);
-  const serverPort = url.searchParams.get("serverPort") || url.port;
+  const serverHost = getServerHost();
 
   const [data, setData] = useState();
   const handleIncomingMessage = useCallback((action) => {
@@ -21,15 +21,12 @@ export default function App() {
     }
   }, []);
 
-  const { sendMessage, readyState } = useWebSocket(
-    `ws://${url.hostname}:${serverPort}`,
-    {
-      retryOnError: true,
-      shouldReconnect: () => true,
-      reconnectAttempts: 100,
-      onMessage: (ev) => handleIncomingMessage(JSON.parse(ev.data)),
-    }
-  );
+  const { sendMessage, readyState } = useWebSocket(`ws://${serverHost}`, {
+    retryOnError: true,
+    shouldReconnect: () => true,
+    reconnectAttempts: 100,
+    onMessage: (ev) => handleIncomingMessage(JSON.parse(ev.data)),
+  });
 
   const getStatusLabel = useCallback(() => {
     switch (readyState) {
@@ -53,11 +50,11 @@ export default function App() {
 
   useEffect(() => {
     if (readyState === ReadyState.OPEN) {
-      fetch(`http://${url.hostname}:${serverPort}/data`)
+      fetch(`http://${serverHost}/data`)
         .then((response) => response.json())
         .then(setData);
     }
-  }, [readyState, serverPort, url.hostname]);
+  }, [readyState, serverHost]);
 
   return (
     <AppContainer>
