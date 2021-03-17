@@ -7,7 +7,7 @@ No install editor for i18n like json files. Only Node.js needed.
 This will install the necessary dependencies and start editor for the specified json language files
 
 ```bash
-npx github:Iskander508/lang-json-editor -f ./path/to/language.json -f ./path/to/another/language.json --openBrowser
+npx github:Iskander508/lang-json-editor -f ./path/to/language/en.json -f ./path/to/another/language/es.json --openBrowser
 ```
 
 ### Command-line parameters

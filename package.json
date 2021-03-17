@@ -1,6 +1,6 @@
 {
   "name": "lang_json_editor",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "bin": "./cli.js",
   "dependencies": {
     "bing-translate-api": "^1.1.0",
