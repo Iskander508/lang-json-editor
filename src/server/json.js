@@ -5,8 +5,16 @@ const ACTION = require("./action");
 const { loadFiles } = require("./file");
 
 let languageFiles = {};
-function initializeLanguages(files) {
-  const paths = files.map((file) => path.resolve(__dirname, file));
+function initializeLanguages(inputFiles) {
+  const inputDefs = inputFiles.map((input) => {
+    const [first, second, rest] = input.split(",");
+    if (!first || rest) {
+      throw new Error(`Invalid input file: ${input}`);
+    }
+    const filepath = path.resolve(process.cwd(), first);
+    return { filepath, language: second };
+  });
+  const paths = inputDefs.map(({ filepath }) => filepath);
 
   // find first unique name in the path and consider it as language
   const pathParts = paths.map((p) =>
@@ -24,16 +32,23 @@ function initializeLanguages(files) {
 
   let languageNames;
   for (let i = 0; i < shortestPathLength; i++) {
-    const parts = pathParts.map((p) => p[i]);
+    const parts = pathParts.map(
+      (p, index) => inputDefs[index].language || p[i]
+    );
     const sorted = [...parts].sort();
-    if (!sorted.some((v, index) => index && v === sorted[index - 1])) {
+    if (
+      !sorted.some(
+        (v, index) =>
+          (index && v === sorted[index - 1]) || (i === 0 && v === "json")
+      )
+    ) {
       languageNames = parts;
       break;
     }
   }
 
   if (!languageNames) {
-    throw new Error(`Couldn't deduce languages from [${paths}]`);
+    throw new Error(`Couldn't deduce languages from [${inputFiles}]`);
   }
 
   languageFiles = languageNames.reduce(

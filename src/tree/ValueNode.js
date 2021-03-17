@@ -5,8 +5,17 @@ import { TreeContext } from "./Context";
 import { translate, useEscapeKey } from "./util";
 import { Button } from "./components/Button";
 import { translate as translateImage } from "./images";
+import { Problem } from "./problem";
 
-function Value({ language, editing, value, onChange, onEdit, hint }) {
+function Value({
+  language,
+  editing,
+  value,
+  onChange,
+  onEdit,
+  hint,
+  highlight,
+}) {
   const [autoFocus, setAutoFocus] = useState(false);
   useEffect(() => {
     if (!editing) {
@@ -14,14 +23,16 @@ function Value({ language, editing, value, onChange, onEdit, hint }) {
     }
   }, [editing]);
 
-  const [hintTranslation, setHintTranslation] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [hintTranslation, setHintTranslation] = useState();
   useEffect(() => {
-    if (editing && hint) {
+    if (editing && focused && hint) {
+      setHintTranslation(undefined);
       translate(hint.value, hint.language, language)
         .then(setHintTranslation)
         .catch((err) => console.warn(err));
     }
-  }, [editing, hint, language]);
+  }, [editing, focused, hint, language]);
 
   const cancelEdit = useCallback(() => onEdit(false), [onEdit]);
   useEscapeKey(editing && cancelEdit);
@@ -32,11 +43,13 @@ function Value({ language, editing, value, onChange, onEdit, hint }) {
       {editing ? (
         <>
           <textarea
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
             autoFocus={autoFocus}
             value={value || ""}
             onChange={(event) => onChange(event.target.value)}
           />
-          {hintTranslation ? (
+          {focused && hintTranslation ? (
             <Button
               title={`Use auto-translation: "${hintTranslation}"`}
               onClick={() => onChange(hintTranslation)}
@@ -52,12 +65,17 @@ function Value({ language, editing, value, onChange, onEdit, hint }) {
       ) : (
         <ValueWrapper
           value={value}
+          highlight={highlight}
           onDoubleClick={() => {
             setAutoFocus(true);
             onEdit(true);
           }}
         >
-          {value ?? "<missing>"}
+          {value?.trim()
+            ? value
+            : value === null || value === undefined
+            ? "<missing>"
+            : `"${value}"`}
         </ValueWrapper>
       )}
     </ValueContainer>
@@ -72,24 +90,32 @@ export function ValueNode({ node }) {
     languages,
     onChangeValue,
     onRemove,
-    missingTranslations,
+    problematicTranslations,
   } = useContext(TreeContext);
 
-  const missingTranslation = missingTranslations.some((t) => t === node.id);
+  const problem = problematicTranslations.find(
+    ({ id, problem }) => id === node.id
+  )?.problem;
 
   return (
     <Container
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >
-      <Label title={node.id} missingTranslation={missingTranslation}>
+      <Label title={node.id} problem={problem}>
         {node.name}
       </Label>
       <ValuesContainer>
         {languages.map((language) => {
+          const value = values[language];
           const hintLanguage = Object.keys(values).find(
             (l) => l !== language && values[l]
           );
+          const highlight =
+            problem === Problem.SAME &&
+            Object.keys(values).find(
+              (l) => l !== language && values[l] === value
+            );
           return (
             <Value
               key={language}
@@ -101,7 +127,8 @@ export function ValueNode({ node }) {
                   value: values[hintLanguage],
                 }
               }
-              value={values[language]}
+              value={value}
+              highlight={highlight}
               onChange={(v) => setValues({ ...values, [language]: v })}
               onEdit={(v) => {
                 setEditing(v);
@@ -149,8 +176,14 @@ const Container = styled.div`
 
 const Label = styled.div`
   cursor: default;
-  background-color: ${({ missingTranslation }) =>
-    missingTranslation ? "salmon" : "lightgreen"};
+  background-color: ${({ problem }) =>
+    problem === Problem.MISSING
+      ? "salmon"
+      : problem === Problem.EMPTY
+      ? "moccasin"
+      : problem
+      ? "lightcyan"
+      : "lightgreen"};
   font-family: monospace, monospace;
   padding: 0 8px;
   border: 0.5px solid black;
@@ -178,10 +211,12 @@ const ValueContainer = styled.div`
 const ValueWrapper = styled.div`
   padding: 0 8px;
   border: 0.5px solid black;
-  ${({ value }) =>
+  ${({ value, highlight }) =>
     value === undefined || value === null
       ? "background-color: red; color: white; font-style: italic;"
-      : !value || !value.trim()
+      : !value.trim()
       ? "background-color: orange;"
+      : highlight
+      ? "background-color: lightcyan;"
       : ""}
 `;

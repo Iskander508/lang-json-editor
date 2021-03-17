@@ -3,7 +3,7 @@
 const yargs = require("yargs")
   .usage(
     `
-Usage: $0 -f input_file1 [input_file2 ...] [-p server_port] [--openBrowser] [--autoClose 2000] [--verbose]
+Usage: $0 -f input_file1[,lang] [input_file2[,lang] ...] [-p server_port] [--openBrowser] [--autoClose 2000] [--verbose]
 		
 Starts Editor server
 `
@@ -13,7 +13,7 @@ Starts Editor server
       alias: "f",
       type: "array",
       demandOption: "Input files needed",
-      describe: "Input translation files",
+      describe: "Input translation files, specify the language code after comma if not autodetected from file path",
     },
     port: {
       alias: "p",
@@ -78,9 +78,11 @@ app.get("/translate", (req, res) => {
   const { text, from, to } = req.query;
   translate(text, from, to)
     .then(({ translation }) => {
+      if (argv.verbose) console.log("Sending translation", translation);
       res.send(translation);
     })
     .catch((err) => {
+      console.error(err);
       res.status(404).send(err.toString());
     });
 });

@@ -8,17 +8,25 @@ import { ValueNode } from "./ValueNode";
 import { confirm, cancel } from "./images";
 import { Button } from "./components/Button";
 import { useEscapeKey } from "./util";
+import { Problem } from "./problem";
 
 export function ObjectNode({ node }) {
   const [expanded, setExpanded] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const [adding, setAdding] = useState();
   const [addingLabel, setAddingLabel] = useState("");
-  const { onAdd, onRemove, missingTranslations } = useContext(TreeContext);
+  const { onAdd, onRemove, problematicTranslations } = useContext(TreeContext);
 
-  const missingTranslation = missingTranslations.some((t) =>
-    t.startsWith(node.id)
-  );
+  const problems = problematicTranslations
+    .filter(({ id }) => id.startsWith(node.id))
+    .map(({ problem }) => problem);
+  const problem = problems.includes(Problem.MISSING)
+    ? Problem.MISSING
+    : problems.includes(Problem.EMPTY)
+    ? Problem.EMPTY
+    : problems.includes(Problem.SAME)
+    ? Problem.SAME
+    : undefined;
 
   const stopAdding = useCallback(() => {
     setAdding(undefined);
@@ -38,7 +46,7 @@ export function ObjectNode({ node }) {
         onMouseEnter={() => setShowControls(true)}
         onMouseLeave={() => setShowControls(false)}
       >
-        <Label missingTranslation={missingTranslation} expanded={expanded}>
+        <Label id={node.id} problem={problem} expanded={expanded}>
           <Caret>{expanded ? "-" : "+"}</Caret>
           {node.name}
         </Label>
@@ -93,6 +101,20 @@ export function ObjectNode({ node }) {
   );
 }
 
+const getLabelBackground = ({ id, problem, expanded }) => {
+  if (!id) return "white";
+  switch (problem) {
+    case Problem.MISSING:
+      return expanded ? "pink" : "salmon";
+    case Problem.EMPTY:
+      return expanded ? "white" : "moccasin";
+    case Problem.SAME:
+      return expanded ? "white" : "lightcyan";
+    default:
+      return expanded ? "mintcream" : "lightgreen";
+  }
+};
+
 const NodeContainer = styled.div`
   cursor: default;
   position: relative;
@@ -106,14 +128,7 @@ const Caret = styled.span`
 `;
 
 const Label = styled.span`
-  background-color: ${({ missingTranslation, expanded }) =>
-    missingTranslation
-      ? expanded
-        ? "pink"
-        : "salmon"
-      : expanded
-      ? "mintcream"
-      : "lightgreen"};
+  background-color: ${getLabelBackground};
   font-family: monospace, monospace;
   padding: 0 8px;
   border: 0.5px solid black;
