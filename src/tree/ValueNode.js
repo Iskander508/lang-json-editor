@@ -2,9 +2,8 @@ import { useState, useContext, useEffect, useCallback } from "react";
 import ControlsContainer from "./components/ControlsContainer";
 import styled from "styled-components";
 import { TreeContext } from "./Context";
-import { translate, useEscapeKey } from "./util";
-import { Button } from "./components/Button";
-import { translate as translateImage } from "./images";
+import { useEscapeKey } from "./util";
+import { TranslateButton } from "./components/TranslateButton";
 import { Problem } from "./problem";
 
 function Value({
@@ -17,22 +16,13 @@ function Value({
   highlight,
 }) {
   const [autoFocus, setAutoFocus] = useState(false);
+  const [focused, setFocused] = useState(false);
   useEffect(() => {
     if (!editing) {
       setAutoFocus(false);
+      setFocused(false);
     }
   }, [editing]);
-
-  const [focused, setFocused] = useState(false);
-  const [hintTranslation, setHintTranslation] = useState();
-  useEffect(() => {
-    if (editing && focused && hint) {
-      setHintTranslation(undefined);
-      translate(hint.value, hint.language, language)
-        .then(setHintTranslation)
-        .catch((err) => console.warn(err));
-    }
-  }, [editing, focused, hint, language]);
 
   const cancelEdit = useCallback(() => onEdit(false), [onEdit]);
   useEscapeKey(editing && cancelEdit);
@@ -44,22 +34,16 @@ function Value({
         <>
           <textarea
             onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
             autoFocus={autoFocus}
             value={value || ""}
             onChange={(event) => onChange(event.target.value)}
           />
-          {focused && hintTranslation ? (
-            <Button
-              title={`Use auto-translation: "${hintTranslation}"`}
-              onClick={() => onChange(hintTranslation)}
-            >
-              <img
-                src={translateImage}
-                width="12"
-                alt={`Use auto-translation: "${hintTranslation}"`}
-              />
-            </Button>
+          {focused && hint ? (
+            <TranslateButton
+              text={hint.value}
+              fromLanguage={hint.language}
+              toLanguage={language}
+            />
           ) : null}
         </>
       ) : (

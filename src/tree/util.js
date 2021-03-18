@@ -19,12 +19,3 @@ export const getServerHost = () => {
   const serverPort = url.searchParams.get("serverPort") || url.port;
   return `${url.hostname}:${serverPort}`;
 };
-
-export const translate = (text, from, to) => {
-  const url = new URL(`http://${getServerHost()}/translate`);
-  url.search = new URLSearchParams({ text, from, to }).toString();
-  return fetch(url).then((response) => {
-    if (response.ok) return response.text();
-    throw response;
-  });
-};

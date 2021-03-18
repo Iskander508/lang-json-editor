@@ -11,7 +11,7 @@ import { useEscapeKey } from "./util";
 import { Problem } from "./problem";
 
 export function ObjectNode({ node }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(!node.id);
   const [showControls, setShowControls] = useState(false);
   const [adding, setAdding] = useState();
   const [addingLabel, setAddingLabel] = useState("");
@@ -38,15 +38,26 @@ export function ObjectNode({ node }) {
   const addingValid =
     addingLabel && !node.children.some(({ name }) => name === addingLabel);
 
+  const onConfirmAdd = addingValid
+    ? () => {
+        onAdd(node.id, adding, addingLabel);
+        stopAdding();
+      }
+    : undefined;
+
   return (
     <>
       <NodeContainer
-        title={node.id}
         onClick={() => setExpanded((c) => !c)}
         onMouseEnter={() => setShowControls(true)}
         onMouseLeave={() => setShowControls(false)}
       >
-        <Label id={node.id} problem={problem} expanded={expanded}>
+        <Label
+          id={node.id}
+          problem={problem}
+          expanded={expanded}
+          title={node.id}
+        >
           <Caret>{expanded ? "-" : "+"}</Caret>
           {node.name}
         </Label>
@@ -70,14 +81,10 @@ export function ObjectNode({ node }) {
               adding === NodeType.OBJECT ? "new section" : "new value"
             }
             onChange={(event) => setAddingLabel(event.target.value.trim())}
+            onKeyPress={(e) => e.key === "Enter" && onConfirmAdd?.()}
           />
           {addingValid ? (
-            <Button
-              onClick={() => {
-                onAdd(node.id, adding, addingLabel);
-                stopAdding();
-              }}
-            >
+            <Button onClick={onConfirmAdd}>
               <img src={confirm} width="16" alt="confirm" />
             </Button>
           ) : null}
