@@ -1,4 +1,4 @@
-import { useState, useContext, useCallback } from "react";
+import { useState, useContext, useCallback, useEffect } from "react";
 import SmoothCollapse from "react-smooth-collapse";
 import ControlsContainer from "./components/ControlsContainer";
 import styled from "styled-components";
@@ -16,6 +16,12 @@ export function ObjectNode({ node }) {
   const [adding, setAdding] = useState();
   const [addingLabel, setAddingLabel] = useState("");
   const { onAdd, onRemove, problematicTranslations } = useContext(TreeContext);
+
+  useEffect(() => {
+    if (!expanded) {
+      setAdding(false);
+    }
+  }, [expanded]);
 
   const problems = problematicTranslations
     .filter(({ id }) => id.startsWith(node.id))
@@ -36,7 +42,9 @@ export function ObjectNode({ node }) {
   useEscapeKey(adding && stopAdding);
 
   const addingValid =
-    addingLabel && !node.children.some(({ name }) => name === addingLabel);
+    addingLabel &&
+    /^\w+$/.test(addingLabel) &&
+    !node.children.some(({ name }) => name === addingLabel);
 
   const onConfirmAdd = addingValid
     ? () => {
@@ -62,11 +70,13 @@ export function ObjectNode({ node }) {
           {node.name}
         </Label>
         {expanded ? (
-          <ControlsContainer
-            visible={showControls}
-            onAdd={(type) => setAdding(type)}
-            onRemove={node.id && (() => onRemove(node.id))}
-          />
+          !adding && (
+            <ControlsContainer
+              visible={showControls}
+              onAdd={(type) => setAdding(type)}
+              onRemove={node.id && (() => onRemove(node.id))}
+            />
+          )
         ) : (
           <Collapsed>{`{} ${node.children.length} item${
             node.children.length === 1 ? "" : "s"
@@ -75,8 +85,9 @@ export function ObjectNode({ node }) {
       </NodeContainer>
       {adding ? (
         <>
-          <input
+          <NewItemInput
             type="text"
+            autoFocus
             placeholder={
               adding === NodeType.OBJECT ? "new section" : "new value"
             }
@@ -153,5 +164,13 @@ const Collapsed = styled.span`
 
 const SubTree = styled.div`
   padding-left: 20px;
+  margin-bottom: 4px;
+`;
+
+const NewItemInput = styled.input`
+  font-family: monospace, monospace;
+  font-size: 16px;
+  padding: 0 8px;
+  margin-left: 20px;
   margin-bottom: 4px;
 `;

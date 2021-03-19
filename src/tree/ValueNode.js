@@ -17,6 +17,7 @@ function Value({
 }) {
   const [autoFocus, setAutoFocus] = useState(false);
   const [focused, setFocused] = useState(false);
+  const [inputWidth, setInputWidth] = useState();
   useEffect(() => {
     if (!editing) {
       setAutoFocus(false);
@@ -32,7 +33,8 @@ function Value({
       <LanguageTag>{language}</LanguageTag>
       {editing ? (
         <>
-          <textarea
+          <ValueEditor
+            style={{ width: inputWidth }}
             onFocus={() => setFocused(true)}
             autoFocus={autoFocus}
             value={value || ""}
@@ -53,6 +55,9 @@ function Value({
           onDoubleClick={() => {
             setAutoFocus(true);
             onEdit(true);
+          }}
+          ref={(elem) => {
+            if (elem) setInputWidth(elem.offsetWidth);
           }}
         >
           {value?.trim()
@@ -203,4 +208,8 @@ const ValueWrapper = styled.div`
       : highlight
       ? "background-color: lightcyan;"
       : ""}
+`;
+
+const ValueEditor = styled.textarea`
+  font-size: 16px;
 `;

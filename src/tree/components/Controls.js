@@ -95,8 +95,8 @@ export function AddControls({ onObject, onValue, onCancel }) {
         image: add,
       }}
       buttons={[
-        { name: "object", text: "{}", callback: onObject },
-        { name: "string", text: '""', callback: onValue },
+        { name: "section", text: "{}", callback: onObject },
+        { name: "value", text: '""', callback: onValue },
         { name: "cancel", image: cancel, callback: onCancel },
       ]}
     />
