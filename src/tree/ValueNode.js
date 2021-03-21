@@ -88,7 +88,19 @@ export function ValueNode({ node }) {
     onChangeValue,
     onRemove,
     problematicTranslations,
+    disabled,
   } = useContext(TreeContext);
+
+  const onCancelEdit = useCallback(() => {
+    setValues(node.values);
+    setEditing(false);
+  }, [node]);
+
+  useEffect(() => {
+    if (disabled) {
+      onCancelEdit();
+    }
+  }, [disabled, onCancelEdit]);
 
   const problem = problematicTranslations.find(({ id }) => id === node.id)
     ?.problem;
@@ -142,7 +154,7 @@ export function ValueNode({ node }) {
               highlight={highlight}
               onChange={(v) => setValues({ ...values, [language]: v })}
               onEdit={(v) => {
-                setEditing(v);
+                setEditing(!disabled && v);
                 if (!v) {
                   setValues(node.values);
                 }
@@ -152,27 +164,30 @@ export function ValueNode({ node }) {
         })}
       </ValuesContainer>
       <ControlsContainer
-        editing={editing}
-        onBeginEdit={() => setEditing(true)}
-        onConfirmEdit={() => {
-          languages.forEach((language) => {
-            const newValue = values[language];
-            const oldValue = node.values[language];
-            if (newValue !== oldValue) {
-              onChangeValue(node.id, language, newValue);
-            }
-          });
-          setEditing(false);
-        }}
-        onCancelEdit={() => {
-          setValues(node.values);
-          setEditing(false);
-        }}
-        onRemove={() => {
-          onRemove(node.id);
-        }}
-        copyString={node.id}
         visible={showControls}
+        editing={editing}
+        onBeginEdit={!disabled && (() => setEditing(true))}
+        onConfirmEdit={
+          !disabled &&
+          (() => {
+            languages.forEach((language) => {
+              const newValue = values[language];
+              const oldValue = node.values[language];
+              if (newValue !== oldValue) {
+                onChangeValue(node.id, language, newValue);
+              }
+            });
+            setEditing(false);
+          })
+        }
+        onCancelEdit={!disabled && onCancelEdit}
+        onRemove={
+          !disabled &&
+          (() => {
+            onRemove(node.id);
+          })
+        }
+        copyString={node.id}
       />
     </Container>
   );

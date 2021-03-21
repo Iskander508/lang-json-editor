@@ -4,7 +4,7 @@ import { findProblems } from "./problem";
 import { TreeContext } from "./Context";
 import { ObjectNode } from "./ObjectNode";
 
-export default function Tree({ data, onSendMessage }) {
+export default function Tree({ data, onSendMessage, disabled }) {
   const [root, setRoot] = useState(data);
   useEffect(() => {
     setRoot(data);
@@ -20,6 +20,7 @@ export default function Tree({ data, onSendMessage }) {
   return (
     <TreeContext.Provider
       value={{
+        disabled,
         problematicTranslations,
         languages: root?.languages,
         onAdd: (id, type, label) => onSendMessage(Action.add(id, type, label)),

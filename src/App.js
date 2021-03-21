@@ -63,7 +63,11 @@ export default function App() {
       </ConnectionStatus>
       <Content>
         {!data && "No data"}
-        <Tree data={data} onSendMessage={onSendMessage} />
+        <Tree
+          data={data}
+          onSendMessage={onSendMessage}
+          disabled={readyState !== ReadyState.OPEN}
+        />
       </Content>
 
       <Footer />

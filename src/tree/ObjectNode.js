@@ -15,13 +15,22 @@ export function ObjectNode({ node }) {
   const [showControls, setShowControls] = useState(false);
   const [adding, setAdding] = useState();
   const [addingLabel, setAddingLabel] = useState("");
-  const { onAdd, onRemove, problematicTranslations } = useContext(TreeContext);
+  const { onAdd, onRemove, problematicTranslations, disabled } = useContext(
+    TreeContext
+  );
+
+  const stopAdding = useCallback(() => {
+    setAdding(undefined);
+    setAddingLabel("");
+  }, []);
 
   useEffect(() => {
-    if (!expanded) {
-      setAdding(false);
+    if (!expanded || disabled) {
+      stopAdding();
     }
-  }, [expanded]);
+  }, [disabled, expanded, stopAdding]);
+
+  useEscapeKey(adding && stopAdding);
 
   const problems = problematicTranslations
     .filter(({ id }) => id.startsWith(node.id))
@@ -33,13 +42,6 @@ export function ObjectNode({ node }) {
     : problems.includes(Problem.SAME)
     ? Problem.SAME
     : undefined;
-
-  const stopAdding = useCallback(() => {
-    setAdding(undefined);
-    setAddingLabel("");
-  }, []);
-
-  useEscapeKey(adding && stopAdding);
 
   const addingValid =
     addingLabel &&
@@ -70,7 +72,8 @@ export function ObjectNode({ node }) {
           {node.name}
         </Label>
         {expanded ? (
-          !adding && (
+          !adding &&
+          !disabled && (
             <ControlsContainer
               visible={showControls}
               onAdd={(type) => setAdding(type)}
