@@ -4,7 +4,8 @@ import styled from "styled-components";
 import { TreeContext } from "./Context";
 import { useEscapeKey } from "./util";
 import { TranslateButton } from "./components/TranslateButton";
-import { Problem } from "./problem";
+import { Problem, extractPlaceholders } from "./problem";
+import { isEqual } from "lodash";
 
 function Value({
   language,
@@ -52,6 +53,13 @@ function Value({
         <ValueWrapper
           value={value}
           highlight={highlight}
+          title={
+            highlight ||
+            (value !== null &&
+              value !== undefined &&
+              !value?.trim() &&
+              "\u26A0 Potential issue: Empty value")
+          }
           onDoubleClick={() => {
             setAutoFocus(true);
             onEdit(true);
@@ -82,9 +90,8 @@ export function ValueNode({ node }) {
     problematicTranslations,
   } = useContext(TreeContext);
 
-  const problem = problematicTranslations.find(
-    ({ id, problem }) => id === node.id
-  )?.problem;
+  const problem = problematicTranslations.find(({ id }) => id === node.id)
+    ?.problem;
 
   return (
     <Container
@@ -100,11 +107,26 @@ export function ValueNode({ node }) {
           const hintLanguage = Object.keys(values).find(
             (l) => l !== language && values[l]
           );
+          const highlightLanguage =
+            (problem === Problem.SAME &&
+              Object.keys(values).find(
+                (l) => l !== language && values[l] === value
+              )) ||
+            (problem === Problem.PLACEHOLDER_MISMATCH &&
+              Object.keys(values).find(
+                (l) =>
+                  l !== language &&
+                  !isEqual(
+                    extractPlaceholders(values[l]),
+                    extractPlaceholders(value)
+                  )
+              ));
+
           const highlight =
-            problem === Problem.SAME &&
-            Object.keys(values).find(
-              (l) => l !== language && values[l] === value
-            );
+            highlightLanguage &&
+            (problem === Problem.SAME
+              ? `\u26A0 Potential issue: The same as the "${highlightLanguage}" version`
+              : `\u26A0 Potential issue: Different placeholders from the "${highlightLanguage}" version`);
           return (
             <Value
               key={language}
@@ -202,7 +224,7 @@ const ValueWrapper = styled.div`
   border: 0.5px solid black;
   ${({ value, highlight }) =>
     value === undefined || value === null
-      ? "background-color: red; color: white; font-style: italic;"
+      ? "background-color: red; color: white; font-style: italic; font-family: sans-serif, monospace;"
       : !value.trim()
       ? "background-color: orange;"
       : highlight
