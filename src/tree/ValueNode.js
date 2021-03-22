@@ -18,7 +18,7 @@ function Value({
 }) {
   const [autoFocus, setAutoFocus] = useState(false);
   const [focused, setFocused] = useState(false);
-  const [inputWidth, setInputWidth] = useState();
+  const [inputStyle, setInputStyle] = useState();
   useEffect(() => {
     if (!editing) {
       setAutoFocus(false);
@@ -35,11 +35,14 @@ function Value({
       {editing ? (
         <>
           <ValueEditor
-            style={{ width: inputWidth }}
+            style={inputStyle}
             onFocus={() => setFocused(true)}
             autoFocus={autoFocus}
             value={value || ""}
             onChange={(event) => onChange(event.target.value)}
+            ref={(elem) => {
+              if (elem && autoFocus) elem.select();
+            }}
           />
           {focused && hint ? (
             <TranslateButton
@@ -65,7 +68,16 @@ function Value({
             onEdit(true);
           }}
           ref={(elem) => {
-            if (elem) setInputWidth(elem.offsetWidth);
+            if (elem) {
+              const width = elem.offsetWidth;
+              const height = elem.offsetHeight;
+              if (
+                inputStyle?.width !== width ||
+                inputStyle?.height !== height
+              ) {
+                setInputStyle({ width, height });
+              }
+            }
           }}
         >
           {value?.trim()
