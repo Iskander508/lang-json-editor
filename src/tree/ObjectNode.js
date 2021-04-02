@@ -15,9 +15,13 @@ export function ObjectNode({ node }) {
   const [showControls, setShowControls] = useState(false);
   const [adding, setAdding] = useState();
   const [addingLabel, setAddingLabel] = useState("");
-  const { onAdd, onRemove, problematicTranslations, disabled } = useContext(
-    TreeContext
-  );
+  const {
+    onAdd,
+    onRemove,
+    problematicTranslations,
+    filteredIds,
+    disabled,
+  } = useContext(TreeContext);
 
   const stopAdding = useCallback(() => {
     setAdding(undefined);
@@ -109,13 +113,16 @@ export function ObjectNode({ node }) {
       ) : null}
       <SubTree>
         <SmoothCollapse expanded={expanded}>
-          {node.children.map((n) =>
-            n.type === NodeType.OBJECT ? (
+          {node.children.map((n) => {
+            if (filteredIds && !filteredIds.some((id) => id === n.id || id.startsWith(`${n.id}.`))) {
+              return null;
+            }
+            return n.type === NodeType.OBJECT ? (
               <ObjectNode key={n.id} node={n} />
             ) : (
               <ValueNode key={n.id} node={n} />
-            )
-          )}
+            );
+          })}
         </SmoothCollapse>
       </SubTree>
     </>

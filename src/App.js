@@ -9,6 +9,9 @@ import { getServerHost } from "./tree/util";
 export default function App() {
   const serverHost = getServerHost();
 
+  const [caseSensitive, setCaseSensitive] = useState(false);
+  const [filter, setFilter] = useState("");
+
   const [matches, setMatches] = useState();
   const [data, setData] = useState();
   const handleIncomingMessage = useCallback((action) => {
@@ -62,14 +65,32 @@ export default function App() {
 
   return (
     <AppContainer>
-      <ConnectionStatus status={readyState}>
-        {getStatusLabel()}
-      </ConnectionStatus>
+      <TopBar>
+        <ConnectionStatus status={readyState}>
+          {getStatusLabel()}
+        </ConnectionStatus>
+        <Search>
+          <span>
+            Filter:{" "}
+            <SearchInput
+              onChange={(event) => setFilter(event.target.value.trim())}
+            />
+            <input
+              type="checkbox"
+              name="case sensitive"
+              checked={caseSensitive}
+              onChange={(event) => setCaseSensitive(event.target.checked)}
+            />
+            case sensitive
+          </span>
+        </Search>
+      </TopBar>
       <Content>
         {!data && "No data"}
         <Tree
           data={data}
           matches={matches}
+          filter={{ text: filter, caseSensitive }}
           onSendMessage={onSendMessage}
           disabled={readyState !== ReadyState.OPEN}
         />
@@ -94,6 +115,27 @@ const AppContainer = styled.div`
   font-weight: 400;
 `;
 
+const TopBar = styled.div`
+  width: 100vw;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+`;
+
+const Search = styled.div`
+  flex: 1;
+  display: flex;
+  justify-content: space-around;
+`;
+
+const SearchInput = styled.input`
+  font-family: monospace, monospace;
+  font-size: 16px;
+  padding: 0 8px;
+  margin-horizontal: 20px;
+  min-width: min(50vw, 400px);
+`;
+
 const Content = styled.div`
   flex: 1;
   min-width: 800px;
@@ -104,7 +146,7 @@ const Content = styled.div`
   align-items: center;
 `;
 
-const ConnectionStatus = styled.div`
+const ConnectionStatus = styled.span`
   color: ${({ status }) =>
     status === ReadyState.OPEN
       ? "darkgreen"
