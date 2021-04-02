@@ -22,69 +22,61 @@ export function extractPlaceholders(value) {
 function findProblemsTraverse(node, languages, matches, report) {
   switch (node.type) {
     case NodeType.VALUE:
-      if (
-        languages.some(
-          (l) => node.values[l] === undefined || node.values[l] === null
-        )
-      ) {
-        return report(node.id, Problem.MISSING);
-      }
-
-      if (languages.some((l) => !node.values[l].trim())) {
-        return report(node.id, Problem.EMPTY);
-      }
-
-      if (
-        matches &&
-        !matches.some(
-          ({ id, type }) => id === node.id && type === MatchType.EXACT
-        )
-      ) {
+      {
         if (
-          !matches.some(
-            ({ id, type }) =>
-              node.id.startsWith(id) && type === MatchType.PARTIAL
+          languages.some(
+            (l) => node.values[l] === undefined || node.values[l] === null
           )
         ) {
-          return report(node.id, Problem.NO_MATCH_IN_SOURCES);
+          return report(node.id, Problem.MISSING);
         }
-      }
 
-      if (
-        Object.values(node.values)
-          .sort()
-          .some((v, index, sorted) => index && v === sorted[index - 1])
-      ) {
-        return report(node.id, Problem.SAME);
-      }
+        if (languages.some((l) => !node.values[l].trim())) {
+          return report(node.id, Problem.EMPTY);
+        }
 
-      if (
-        Object.values(node.values)
-          .map(extractPlaceholders)
-          .some(
-            (placeholders, index, all) =>
-              index && !isEqual(placeholders, all[index - 1])
-          )
-      ) {
-        return report(node.id, Problem.PLACEHOLDER_MISMATCH);
-      }
-
-      if (
-        matches &&
-        !matches.some(
-          ({ id, type }) => id === node.id && type === MatchType.EXACT
-        )
-      ) {
-        if (
+        const foundMatch =
+          !matches ||
           matches.some(
-            ({ id, type }) =>
-              node.id.startsWith(id) && type === MatchType.PARTIAL
-          )
+            ({ id, type }) => id === node.id && type === MatchType.EXACT
+          );
+        const foundPartialMatch =
+          foundMatch ||
+          matches.some(
+            ({ id }) =>
+              node.id.startsWith(`${id}.`) || node.id.startsWith(`${id}_`)
+          );
+        if (!foundMatch) {
+          if (!foundPartialMatch) {
+            return report(node.id, Problem.NO_MATCH_IN_SOURCES);
+          }
+        }
+
+        if (
+          Object.values(node.values)
+            .sort()
+            .some((v, index, sorted) => index && v === sorted[index - 1])
         ) {
-          return report(node.id, Problem.PARTIAL_MATCH_IN_SOURCES);
+          return report(node.id, Problem.SAME);
+        }
+
+        if (
+          Object.values(node.values)
+            .map(extractPlaceholders)
+            .some(
+              (placeholders, index, all) =>
+                index && !isEqual(placeholders, all[index - 1])
+            )
+        ) {
+          return report(node.id, Problem.PLACEHOLDER_MISMATCH);
+        }
+
+        if (!foundMatch) {
+          if (foundPartialMatch) {
+            return report(node.id, Problem.PARTIAL_MATCH_IN_SOURCES);
+          }
         }
       }
-
       break;
     case NodeType.OBJECT:
       if (!node.children.length) {
