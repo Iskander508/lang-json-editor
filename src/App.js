@@ -9,6 +9,8 @@ import { getServerHost } from "./tree/util";
 export default function App() {
   const serverHost = getServerHost();
 
+  const [collapseAll, setCollapseAll] = useState();
+
   const [caseSensitive, setCaseSensitive] = useState(false);
   const [filter, setFilter] = useState("");
 
@@ -55,6 +57,8 @@ export default function App() {
     [sendMessage]
   );
 
+  const onCollapseChange = useCallback(() => setCollapseAll(), []);
+
   useEffect(() => {
     if (readyState === ReadyState.OPEN) {
       fetch(`http://${serverHost}/data`)
@@ -69,10 +73,28 @@ export default function App() {
         <ConnectionStatus status={readyState}>
           {getStatusLabel()}
         </ConnectionStatus>
-        <Search>
+        <Collapse>
           <span>
-            Filter:{" "}
-            <SearchInput
+            <button
+              disabled={collapseAll === false}
+              onClick={() => setCollapseAll(false)}
+              title="Expand All"
+            >
+              +
+            </button>
+            <button
+              disabled={collapseAll}
+              onClick={() => setCollapseAll(true)}
+              title="Collapse All"
+            >
+              -
+            </button>
+          </span>
+        </Collapse>
+        <Filter>
+          <span>
+            Filter:
+            <FilterInput
               onChange={(event) => setFilter(event.target.value.trim())}
             />
             <input
@@ -83,13 +105,15 @@ export default function App() {
             />
             case sensitive
           </span>
-        </Search>
+        </Filter>
       </TopBar>
       <Content>
         {!data && "No data"}
         <Tree
           data={data}
           matches={matches}
+          collapseAll={collapseAll}
+          onCollapseChange={onCollapseChange}
           filter={{ text: filter, caseSensitive }}
           onSendMessage={onSendMessage}
           disabled={readyState !== ReadyState.OPEN}
@@ -120,19 +144,27 @@ const TopBar = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
+  padding-left: 1em;
+  padding-right: 1em;
 `;
 
-const Search = styled.div`
+const Collapse = styled.div`
   flex: 1;
   display: flex;
   justify-content: space-around;
 `;
 
-const SearchInput = styled.input`
+const Filter = styled.div`
+  flex: 3;
+  display: flex;
+  justify-content: space-around;
+`;
+
+const FilterInput = styled.input`
   font-family: monospace, monospace;
   font-size: 16px;
   padding: 0 8px;
-  margin-horizontal: 20px;
+  margin-left: 1em;
   min-width: min(50vw, 400px);
 `;
 

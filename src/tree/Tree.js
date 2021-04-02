@@ -8,9 +8,11 @@ import { ObjectNode } from "./ObjectNode";
 export default function Tree({
   data,
   matches,
-  filter: {text: filter, caseSensitive},
+  filter: { text: filter, caseSensitive },
   onSendMessage,
   disabled,
+  collapseAll,
+  onCollapseChange,
 }) {
   const [root, setRoot] = useState(data);
   useEffect(() => {
@@ -38,6 +40,8 @@ export default function Tree({
   return (
     <TreeContext.Provider
       value={{
+        collapseAll,
+        onCollapseChange,
         disabled,
         filteredIds,
         problematicTranslations,

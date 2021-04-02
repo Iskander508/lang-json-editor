@@ -15,12 +15,15 @@ export function ObjectNode({ node }) {
   const [showControls, setShowControls] = useState(false);
   const [adding, setAdding] = useState();
   const [addingLabel, setAddingLabel] = useState("");
+
   const {
     onAdd,
     onRemove,
     problematicTranslations,
     filteredIds,
     disabled,
+    collapseAll,
+    onCollapseChange,
   } = useContext(TreeContext);
 
   const stopAdding = useCallback(() => {
@@ -33,6 +36,12 @@ export function ObjectNode({ node }) {
       stopAdding();
     }
   }, [disabled, expanded, stopAdding]);
+
+  useEffect(() => {
+    if (collapseAll !== undefined) {
+      setExpanded(!collapseAll);
+    }
+  }, [collapseAll]);
 
   useEscapeKey(adding && stopAdding);
 
@@ -59,12 +68,19 @@ export function ObjectNode({ node }) {
       }
     : undefined;
 
+  const onToggleCollapse = useCallback(() => {
+    onCollapseChange();
+    setExpanded((c) => !c);
+  }, [onCollapseChange]);
+  const onMouseEnter = useCallback(() => setShowControls(true), []);
+  const onMouseLeave = useCallback(() => setShowControls(false), []);
+
   return (
     <>
       <NodeContainer
-        onClick={() => setExpanded((c) => !c)}
-        onMouseEnter={() => setShowControls(true)}
-        onMouseLeave={() => setShowControls(false)}
+        onClick={onToggleCollapse}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
       >
         <Label
           id={node.id}
@@ -114,7 +130,12 @@ export function ObjectNode({ node }) {
       <SubTree>
         <SmoothCollapse expanded={expanded}>
           {node.children.map((n) => {
-            if (filteredIds && !filteredIds.some((id) => id === n.id || id.startsWith(`${n.id}.`))) {
+            if (
+              filteredIds &&
+              !filteredIds.some(
+                (id) => id === n.id || id.startsWith(`${n.id}.`)
+              )
+            ) {
               return null;
             }
             return n.type === NodeType.OBJECT ? (
