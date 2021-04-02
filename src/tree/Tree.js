@@ -4,7 +4,7 @@ import { findProblems } from "./problem";
 import { TreeContext } from "./Context";
 import { ObjectNode } from "./ObjectNode";
 
-export default function Tree({ data, onSendMessage, disabled }) {
+export default function Tree({ data, matches, onSendMessage, disabled }) {
   const [root, setRoot] = useState(data);
   useEffect(() => {
     setRoot(data);
@@ -13,9 +13,9 @@ export default function Tree({ data, onSendMessage, disabled }) {
   const [problematicTranslations, setProblematicTranslations] = useState([]);
   useEffect(() => {
     if (root?.languages?.length) {
-      setProblematicTranslations(findProblems(root.content, root.languages));
+      setProblematicTranslations(findProblems(root.content, root.languages, matches));
     }
-  }, [root]);
+  }, [matches, root]);
 
   return (
     <TreeContext.Provider

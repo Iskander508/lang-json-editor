@@ -61,7 +61,8 @@ function Value({
             (value !== null &&
               value !== undefined &&
               !value?.trim() &&
-              "\u26A0 Potential issue: Empty value")
+              "\u26A0 Potential issue: Empty value") ||
+            ""
           }
           onDoubleClick={() => {
             setAutoFocus(true);
@@ -117,12 +118,26 @@ export function ValueNode({ node }) {
   const problem = problematicTranslations.find(({ id }) => id === node.id)
     ?.problem;
 
+  const additionalProblemHint =
+    problem === Problem.NO_MATCH_IN_SOURCES
+      ? "\u26A0 No match found in the sources"
+      : problem === Problem.PARTIAL_MATCH_IN_SOURCES
+      ? "\u26A0 Partial match in sourcefiles"
+      : "";
+
   return (
     <Container
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >
-      <Label title={node.id} problem={problem}>
+      <Label
+        title={
+          additionalProblemHint
+            ? `${node.id}\n${additionalProblemHint}`
+            : node.id
+        }
+        problem={problem}
+      >
         {node.name}
       </Label>
       <ValuesContainer>
@@ -219,6 +234,10 @@ const Label = styled.div`
       ? "salmon"
       : problem === Problem.EMPTY
       ? "moccasin"
+      : problem === Problem.NO_MATCH_IN_SOURCES
+      ? "lightgray"
+      :  problem === Problem.PARTIAL_MATCH_IN_SOURCES
+      ? "darkseagreen"
       : problem
       ? "lightcyan"
       : "lightgreen"};

@@ -3,7 +3,7 @@
 const yargs = require("yargs")
   .usage(
     `
-Usage: $0 -f input_file1[,lang] [input_file2[,lang] ...] [-p server_port] [--openBrowser] [--autoClose 2000] [--verbose]
+Usage: $0 -f input_file1[,lang] [input_file2[,lang] ...] [-s "sources_glob"] [-p server_port] [--openBrowser] [--autoClose 2000] [--verbose]
 		
 Starts Editor server
 `
@@ -13,7 +13,13 @@ Starts Editor server
       alias: "f",
       type: "array",
       demandOption: "Input files needed",
-      describe: "Input translation files, specify the language code after comma if not autodetected from file path",
+      describe:
+        "Input translation files, specify the language code after comma if not autodetected from file path",
+    },
+    source: {
+      alias: "s",
+      type: "string",
+      describe: "Source files glob pattern to look for uses",
     },
     port: {
       alias: "p",
@@ -56,6 +62,7 @@ const {
   initializeLanguages,
   handleAction,
 } = require("./src/server/json");
+const { getMatches } = require("./src/server/matches");
 const { Action } = require("./src/protocol");
 
 const langs = initializeLanguages(argv.file);
@@ -106,6 +113,12 @@ wss.on("connection", (connection) => {
   if (argv.verbose) console.log("Client connected");
   clientsConnected.push(connection);
   stopAutoClose();
+
+  if (argv.source) {
+    getMatches(argv.source, (data) => {
+      connection.send(JSON.stringify(Action.matchesUpdate(data)));
+    }, argv.verbose);
+  }
 
   connection.on("close", () => {
     if (argv.verbose) console.log("Client disconnected");

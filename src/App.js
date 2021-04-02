@@ -9,11 +9,15 @@ import { getServerHost } from "./tree/util";
 export default function App() {
   const serverHost = getServerHost();
 
+  const [matches, setMatches] = useState();
   const [data, setData] = useState();
   const handleIncomingMessage = useCallback((action) => {
     switch (action.action) {
       case ActionType.DATA_UPDATE:
         setData(action.data);
+        break;
+      case ActionType.MATCHES_UPDATE:
+        setMatches(action.data);
         break;
       default:
         console.error("Invalid action:", action.action);
@@ -65,6 +69,7 @@ export default function App() {
         {!data && "No data"}
         <Tree
           data={data}
+          matches={matches}
           onSendMessage={onSendMessage}
           disabled={readyState !== ReadyState.OPEN}
         />

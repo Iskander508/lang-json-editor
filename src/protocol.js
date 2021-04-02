@@ -8,6 +8,12 @@ const ActionType = {
   CHANGE_VALUE: "CHANGE_VALUE",
   REMOVE: "REMOVE",
   DATA_UPDATE: "DATA_UPDATE",
+  MATCHES_UPDATE: "MATCHES_UPDATE",
+};
+
+const MatchType = {
+  EXACT: "exact",
+  PARTIAL: "partial",
 };
 
 const Action = {
@@ -31,6 +37,10 @@ const Action = {
     action: ActionType.DATA_UPDATE,
     data
   }),
+  matchesUpdate: (data) => ({
+    action: ActionType.MATCHES_UPDATE,
+    data
+  }),
 };
 
-module.exports = { NodeType, ActionType, Action };
+module.exports = { NodeType, ActionType, Action, MatchType };

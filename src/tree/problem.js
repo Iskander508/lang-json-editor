@@ -1,4 +1,4 @@
-import { NodeType } from "../protocol";
+import { MatchType, NodeType } from "../protocol";
 import { isEqual } from "lodash";
 
 export const Problem = {
@@ -6,6 +6,8 @@ export const Problem = {
   EMPTY: "EMPTY", // only whitespaces, or empty section
   SAME: "SAME", // same entry for multiple languages
   PLACEHOLDER_MISMATCH: "PLACEHOLDER_MISMATCH", // same entry for multiple languages
+  NO_MATCH_IN_SOURCES: "NO_MATCH_IN_SOURCES", // not found in any source file
+  PARTIAL_MATCH_IN_SOURCES: "PARTIAL_MATCH_IN_SOURCES", // only parent node found in source files
 };
 
 export function extractPlaceholders(value) {
@@ -17,7 +19,7 @@ export function extractPlaceholders(value) {
   ).sort();
 }
 
-function findProblemsTraverse(node, languages, report) {
+function findProblemsTraverse(node, languages, matches, report) {
   switch (node.type) {
     case NodeType.VALUE:
       if (
@@ -30,6 +32,22 @@ function findProblemsTraverse(node, languages, report) {
 
       if (languages.some((l) => !node.values[l].trim())) {
         return report(node.id, Problem.EMPTY);
+      }
+
+      if (
+        matches &&
+        !matches.some(
+          ({ id, type }) => id === node.id && type === MatchType.EXACT
+        )
+      ) {
+        if (
+          !matches.some(
+            ({ id, type }) =>
+              node.id.startsWith(id) && type === MatchType.PARTIAL
+          )
+        ) {
+          return report(node.id, Problem.NO_MATCH_IN_SOURCES);
+        }
       }
 
       if (
@@ -51,21 +69,39 @@ function findProblemsTraverse(node, languages, report) {
         return report(node.id, Problem.PLACEHOLDER_MISMATCH);
       }
 
+      if (
+        matches &&
+        !matches.some(
+          ({ id, type }) => id === node.id && type === MatchType.EXACT
+        )
+      ) {
+        if (
+          matches.some(
+            ({ id, type }) =>
+              node.id.startsWith(id) && type === MatchType.PARTIAL
+          )
+        ) {
+          return report(node.id, Problem.PARTIAL_MATCH_IN_SOURCES);
+        }
+      }
+
       break;
     case NodeType.OBJECT:
       if (!node.children.length) {
         return report(node.id, Problem.EMPTY);
       }
-      node.children.forEach((n) => findProblemsTraverse(n, languages, report));
+      node.children.forEach((n) =>
+        findProblemsTraverse(n, languages, matches, report)
+      );
       break;
     default:
       throw new Error(`Invalid type: ${node.type}`);
   }
 }
 
-export function findProblems(node, languages) {
+export function findProblems(node, languages, matches) {
   const problems = [];
-  findProblemsTraverse(node, languages, (id, problem) => {
+  findProblemsTraverse(node, languages, matches, (id, problem) => {
     problems.push({ id, problem });
   });
   return problems;
