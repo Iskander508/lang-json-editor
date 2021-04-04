@@ -14,8 +14,8 @@ function discover(path, regex) {
         matches.forEach((match) => {
           results.push({
             id: match.replace(/[`'"${]/g, "").replace(/\.$/, ""),
-            line: index,
-            contextStartIndex,
+            line: index + 1,
+            contextStartLine: contextStartIndex + 1,
             context: all.slice(contextStartIndex, contextStartIndex + 10),
           });
         });

@@ -18,6 +18,7 @@ export const ControlsContainer = ({
   onConfirmEdit,
   onCancelEdit,
   onBeginEdit,
+  onSources,
   copyString,
 }) => {
   const [mode, setMode] = useState(
@@ -73,6 +74,7 @@ export const ControlsContainer = ({
               onBeginEdit?.();
             })
           }
+          onSources={onSources}
         />
       );
   }
@@ -86,6 +88,7 @@ ControlsContainer.propTypes = {
   onConfirmEdit: func,
   onCancelEdit: func,
   onBeginEdit: func,
+  onSources: func,
   copyString: string,
 };
 

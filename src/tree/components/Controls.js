@@ -1,6 +1,6 @@
 import React from "react";
 import { bool, func, string } from "prop-types";
-import { add, edit, confirm, cancel, trash, copy } from "../images";
+import { add, edit, confirm, cancel, trash, copy, code } from "../images";
 import styled from "styled-components";
 import { Button } from "./Button";
 import { CopyToClipboard } from "react-copy-to-clipboard";
@@ -44,7 +44,7 @@ function Controls({ operation, buttons, visible = true, copyString }) {
   );
 }
 
-export function MainControls({ visible, onAdd, onRemove, onEdit, copyString }) {
+export function MainControls({ visible, onAdd, onRemove, onEdit, onSources, copyString }) {
   return (
     <Controls
       visible={visible}
@@ -52,6 +52,7 @@ export function MainControls({ visible, onAdd, onRemove, onEdit, copyString }) {
         onAdd && { name: "add", image: add, callback: onAdd },
         onRemove && { name: "remove", image: trash, callback: onRemove },
         onEdit && { name: "edit", image: edit, callback: onEdit },
+        onSources && { name: "show in sources", image: code, callback: onSources },
       ]}
       copyString={copyString}
     />

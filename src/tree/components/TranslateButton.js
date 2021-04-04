@@ -2,7 +2,7 @@ import React from "react";
 import { googleTranslate } from "../images";
 import { Button } from "./Button";
 
-export function TranslateButton({ text, fromLanguage, toLanguage, onResult }) {
+export function TranslateButton({ text, fromLanguage, toLanguage }) {
   const title = 'Open on GoogleTranslate';
   return (
     <a

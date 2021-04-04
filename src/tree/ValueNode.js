@@ -1,4 +1,5 @@
 import { useState, useContext, useEffect, useCallback } from "react";
+import SmoothCollapse from "react-smooth-collapse";
 import ControlsContainer from "./components/ControlsContainer";
 import styled from "styled-components";
 import { TreeContext } from "./Context";
@@ -6,6 +7,7 @@ import { useEscapeKey } from "./util";
 import { TranslateButton } from "./components/TranslateButton";
 import { Problem, extractPlaceholders } from "./problem";
 import { isEqual } from "lodash";
+import { SourceMatch } from "./components/SourceMatch";
 
 function Value({
   language,
@@ -94,6 +96,7 @@ function Value({
 
 export function ValueNode({ node }) {
   const [showControls, setShowControls] = useState(false);
+  const [showSources, setShowSources] = useState(false);
   const [editing, setEditing] = useState(false);
   const [values, setValues] = useState(node.values);
   const {
@@ -103,6 +106,8 @@ export function ValueNode({ node }) {
     problematicTranslations,
     disabled,
   } = useContext(TreeContext);
+
+  useEscapeKey(showSources && (() => setShowSources(false)));
 
   const onCancelEdit = useCallback(() => {
     setValues(node.values);
@@ -125,98 +130,115 @@ export function ValueNode({ node }) {
       ? "\u26A0 Partial match in sourcefiles"
       : "";
 
+  const hasSourceMatches =
+    node.exactSourceMatches?.length || node.partialSourceMatches?.length;
   return (
-    <Container
-      onMouseEnter={() => setShowControls(true)}
-      onMouseLeave={() => setShowControls(false)}
-    >
-      <Label
-        title={
-          additionalProblemHint
-            ? `${node.id}\n${additionalProblemHint}`
-            : node.id
-        }
-        problem={problem}
+    <>
+      <Container
+        onMouseEnter={() => setShowControls(true)}
+        onMouseLeave={() => setShowControls(false)}
       >
-        {node.name}
-      </Label>
-      <ValuesContainer>
-        {languages.map((language) => {
-          const value = values[language];
-          const hintLanguage = Object.keys(values).find(
-            (l) => l !== language && values[l]
-          );
-          const highlightLanguage =
-            (problem === Problem.SAME &&
-              Object.keys(values).find(
-                (l) => l !== language && values[l] === value
-              )) ||
-            (problem === Problem.PLACEHOLDER_MISMATCH &&
-              Object.keys(values).find(
-                (l) =>
-                  l !== language &&
-                  !isEqual(
-                    extractPlaceholders(values[l]),
-                    extractPlaceholders(value)
-                  )
-              ));
+        <Label
+          title={
+            additionalProblemHint
+              ? `${node.id}\n${additionalProblemHint}`
+              : node.id
+          }
+          problem={problem}
+        >
+          {node.name}
+        </Label>
+        <ValuesContainer>
+          {languages.map((language) => {
+            const value = values[language];
+            const hintLanguage = Object.keys(values).find(
+              (l) => l !== language && values[l]
+            );
+            const highlightLanguage =
+              (problem === Problem.SAME &&
+                Object.keys(values).find(
+                  (l) => l !== language && values[l] === value
+                )) ||
+              (problem === Problem.PLACEHOLDER_MISMATCH &&
+                Object.keys(values).find(
+                  (l) =>
+                    l !== language &&
+                    !isEqual(
+                      extractPlaceholders(values[l]),
+                      extractPlaceholders(value)
+                    )
+                ));
 
-          const highlight =
-            highlightLanguage &&
-            (problem === Problem.SAME
-              ? `\u26A0 Potential issue: The same as the "${highlightLanguage}" version`
-              : `\u26A0 Potential issue: Different placeholders from the "${highlightLanguage}" version`);
-          return (
-            <Value
-              key={language}
-              language={language}
-              editing={editing}
-              hint={
-                hintLanguage && {
-                  language: hintLanguage,
-                  value: values[hintLanguage],
+            const highlight =
+              highlightLanguage &&
+              (problem === Problem.SAME
+                ? `\u26A0 Potential issue: The same as the "${highlightLanguage}" version`
+                : `\u26A0 Potential issue: Different placeholders from the "${highlightLanguage}" version`);
+            return (
+              <Value
+                key={language}
+                language={language}
+                editing={editing}
+                hint={
+                  hintLanguage && {
+                    language: hintLanguage,
+                    value: values[hintLanguage],
+                  }
                 }
-              }
-              value={value}
-              highlight={highlight}
-              onChange={(v) => setValues({ ...values, [language]: v })}
-              onEdit={(v) => {
-                setEditing(!disabled && v);
-                if (!v) {
-                  setValues(node.values);
+                value={value}
+                highlight={highlight}
+                onChange={(v) => setValues({ ...values, [language]: v })}
+                onEdit={(v) => {
+                  setEditing(!disabled && v);
+                  if (!v) {
+                    setValues(node.values);
+                  }
+                }}
+              />
+            );
+          })}
+        </ValuesContainer>
+        <ControlsContainer
+          visible={showControls}
+          editing={editing}
+          onBeginEdit={!disabled && (() => setEditing(true))}
+          onConfirmEdit={
+            !disabled &&
+            (() => {
+              languages.forEach((language) => {
+                const newValue = values[language];
+                const oldValue = node.values[language];
+                if (newValue !== oldValue) {
+                  onChangeValue(node.id, language, newValue);
                 }
-              }}
-            />
-          );
-        })}
-      </ValuesContainer>
-      <ControlsContainer
-        visible={showControls}
-        editing={editing}
-        onBeginEdit={!disabled && (() => setEditing(true))}
-        onConfirmEdit={
-          !disabled &&
-          (() => {
-            languages.forEach((language) => {
-              const newValue = values[language];
-              const oldValue = node.values[language];
-              if (newValue !== oldValue) {
-                onChangeValue(node.id, language, newValue);
-              }
-            });
-            setEditing(false);
-          })
-        }
-        onCancelEdit={!disabled && onCancelEdit}
-        onRemove={
-          !disabled &&
-          (() => {
-            onRemove(node.id);
-          })
-        }
-        copyString={node.id}
-      />
-    </Container>
+              });
+              setEditing(false);
+            })
+          }
+          onCancelEdit={!disabled && onCancelEdit}
+          onRemove={
+            !disabled &&
+            (() => {
+              onRemove(node.id);
+            })
+          }
+          onSources={
+            hasSourceMatches ? () => setShowSources((s) => !s) : undefined
+          }
+          copyString={node.id}
+        />
+      </Container>
+      <Sources>
+        <SmoothCollapse expanded={showSources}>
+          {node.exactSourceMatches?.map((match, index) => (
+            <SourceMatch key={`exact-${index}`} {...match} />
+          ))}
+          {node.partialSourceMatches?.map((match, index) => (
+            <SourceMatch key={`partial-${index}`} {...match} />
+          ))}
+        </SmoothCollapse>
+      </Sources>
+    </>
   );
 }
 
@@ -236,7 +258,7 @@ const Label = styled.div`
       ? "moccasin"
       : problem === Problem.NO_MATCH_IN_SOURCES
       ? "lightgray"
-      :  problem === Problem.PARTIAL_MATCH_IN_SOURCES
+      : problem === Problem.PARTIAL_MATCH_IN_SOURCES
       ? "darkseagreen"
       : problem
       ? "lightcyan"
@@ -257,6 +279,11 @@ const LanguageTag = styled.span`
   padding: 0 8px;
   color: white;
   background-color: black;
+`;
+
+const Sources = styled.div`
+  padding-left: 20px;
+  margin-bottom: 4px;
 `;
 
 const ValueContainer = styled.div`

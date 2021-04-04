@@ -35,17 +35,18 @@ function findProblemsTraverse(node, languages, sourceMatches, report) {
           return report(node.id, Problem.EMPTY);
         }
 
-        const foundSourceMatch =
-          !sourceMatches ||
-          sourceMatches.some(
+        node.exactSourceMatches =
+          sourceMatches?.filter(
             ({ id, type }) => id === node.id && type === MatchType.EXACT
-          );
-        const foundPartialSourceMatch =
-          foundSourceMatch ||
-          sourceMatches.some(
+          ) || [];
+        node.partialSourceMatches =
+          sourceMatches?.filter(
             ({ id }) =>
-              node.id.startsWith(`${id}.`) || node.id.startsWith(`${id}_`)
-          );
+              node.id.startsWith(`${id}.`) || node.id.startsWith(`${id}_plural`)
+          ) || [];
+
+        const foundSourceMatch = node.exactSourceMatches.length;
+        const foundPartialSourceMatch = node.partialSourceMatches.length;
         if (!foundSourceMatch) {
           if (!foundPartialSourceMatch) {
             return report(node.id, Problem.NO_MATCH_IN_SOURCES);
