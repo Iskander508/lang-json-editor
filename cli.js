@@ -62,7 +62,7 @@ const {
   initializeLanguages,
   handleAction,
 } = require("./src/server/json");
-const { getMatches } = require("./src/server/matches");
+const { getSourceMatches } = require("./src/server/sourceMatches");
 const { Action } = require("./src/protocol");
 
 const langs = initializeLanguages(argv.file);
@@ -115,8 +115,8 @@ wss.on("connection", (connection) => {
   stopAutoClose();
 
   if (argv.source) {
-    getMatches(argv.source, (data) => {
-      connection.send(JSON.stringify(Action.matchesUpdate(data)));
+    getSourceMatches(argv.source, (data) => {
+      connection.send(JSON.stringify(Action.sourceMatchesUpdate(data)));
     }, argv.verbose);
   }
 

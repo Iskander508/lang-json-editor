@@ -19,7 +19,7 @@ export function extractPlaceholders(value) {
   ).sort();
 }
 
-function findProblemsTraverse(node, languages, matches, report) {
+function findProblemsTraverse(node, languages, sourceMatches, report) {
   switch (node.type) {
     case NodeType.VALUE:
       {
@@ -35,19 +35,19 @@ function findProblemsTraverse(node, languages, matches, report) {
           return report(node.id, Problem.EMPTY);
         }
 
-        const foundMatch =
-          !matches ||
-          matches.some(
+        const foundSourceMatch =
+          !sourceMatches ||
+          sourceMatches.some(
             ({ id, type }) => id === node.id && type === MatchType.EXACT
           );
-        const foundPartialMatch =
-          foundMatch ||
-          matches.some(
+        const foundPartialSourceMatch =
+          foundSourceMatch ||
+          sourceMatches.some(
             ({ id }) =>
               node.id.startsWith(`${id}.`) || node.id.startsWith(`${id}_`)
           );
-        if (!foundMatch) {
-          if (!foundPartialMatch) {
+        if (!foundSourceMatch) {
+          if (!foundPartialSourceMatch) {
             return report(node.id, Problem.NO_MATCH_IN_SOURCES);
           }
         }
@@ -71,8 +71,8 @@ function findProblemsTraverse(node, languages, matches, report) {
           return report(node.id, Problem.PLACEHOLDER_MISMATCH);
         }
 
-        if (!foundMatch) {
-          if (foundPartialMatch) {
+        if (!foundSourceMatch) {
+          if (foundPartialSourceMatch) {
             return report(node.id, Problem.PARTIAL_MATCH_IN_SOURCES);
           }
         }
@@ -83,7 +83,7 @@ function findProblemsTraverse(node, languages, matches, report) {
         return report(node.id, Problem.EMPTY);
       }
       node.children.forEach((n) =>
-        findProblemsTraverse(n, languages, matches, report)
+        findProblemsTraverse(n, languages, sourceMatches, report)
       );
       break;
     default:
@@ -91,9 +91,9 @@ function findProblemsTraverse(node, languages, matches, report) {
   }
 }
 
-export function findProblems(node, languages, matches) {
+export function findProblems(node, languages, sourceMatches) {
   const problems = [];
-  findProblemsTraverse(node, languages, matches, (id, problem) => {
+  findProblemsTraverse(node, languages, sourceMatches, (id, problem) => {
     problems.push({ id, problem });
   });
   return problems;

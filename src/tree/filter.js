@@ -3,8 +3,8 @@ import { NodeType } from "../protocol";
 function findFilteredIDsTraverse(node, filter, caseSensitive, report) {
   function isMatch(id) {
     return caseSensitive
-      ? id.includes(filter)
-      : id.toLowerCase().includes(filter.toLowerCase());
+      ? id?.includes(filter)
+      : id?.toLowerCase().includes(filter.toLowerCase());
   }
 
   switch (node.type) {

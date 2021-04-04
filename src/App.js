@@ -14,15 +14,15 @@ export default function App() {
   const [caseSensitive, setCaseSensitive] = useState(false);
   const [filter, setFilter] = useState("");
 
-  const [matches, setMatches] = useState();
+  const [sourceMatches, setSourceMatches] = useState();
   const [data, setData] = useState();
   const handleIncomingMessage = useCallback((action) => {
     switch (action.action) {
       case ActionType.DATA_UPDATE:
         setData(action.data);
         break;
-      case ActionType.MATCHES_UPDATE:
-        setMatches(action.data);
+      case ActionType.SOURCE_MATCHES_UPDATE:
+        setSourceMatches(action.data);
         break;
       default:
         console.error("Invalid action:", action.action);
@@ -111,7 +111,7 @@ export default function App() {
         {!data && "No data"}
         <Tree
           data={data}
-          matches={matches}
+          sourceMatches={sourceMatches}
           collapseAll={collapseAll}
           onCollapseChange={onCollapseChange}
           filter={{ text: filter, caseSensitive }}

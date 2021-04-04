@@ -8,7 +8,7 @@ const ActionType = {
   CHANGE_VALUE: "CHANGE_VALUE",
   REMOVE: "REMOVE",
   DATA_UPDATE: "DATA_UPDATE",
-  MATCHES_UPDATE: "MATCHES_UPDATE",
+  SOURCE_MATCHES_UPDATE: "SOURCE_MATCHES_UPDATE",
 };
 
 const MatchType = {
@@ -37,8 +37,8 @@ const Action = {
     action: ActionType.DATA_UPDATE,
     data
   }),
-  matchesUpdate: (data) => ({
-    action: ActionType.MATCHES_UPDATE,
+  sourceMatchesUpdate: (data) => ({
+    action: ActionType.SOURCE_MATCHES_UPDATE,
     data
   }),
 };

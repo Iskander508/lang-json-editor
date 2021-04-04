@@ -25,7 +25,7 @@ function discover(path, regex) {
   return results;
 }
 
-function getMatches(globPatternFiles, cb, verbose) {
+function getSourceMatches(globPatternFiles, cb, verbose) {
   findFiles(globPatternFiles, (files) => {
     if (verbose) {
       console.log(`Looking for translation IDs in ${files.length} files.`);
@@ -51,4 +51,4 @@ function getMatches(globPatternFiles, cb, verbose) {
   });
 }
 
-module.exports = { getMatches };
+module.exports = { getSourceMatches };

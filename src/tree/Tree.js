@@ -7,7 +7,7 @@ import { ObjectNode } from "./ObjectNode";
 
 export default function Tree({
   data,
-  matches,
+  sourceMatches,
   filter: { text: filter, caseSensitive },
   onSendMessage,
   disabled,
@@ -23,10 +23,10 @@ export default function Tree({
   useEffect(() => {
     if (root?.languages?.length) {
       setProblematicTranslations(
-        findProblems(root.content, root.languages, matches)
+        findProblems(root.content, root.languages, sourceMatches)
       );
     }
-  }, [matches, root]);
+  }, [sourceMatches, root]);
 
   const [filteredIds, setFilteredIds] = useState();
   useEffect(() => {
