@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/static/css/main.eb4ed002.chunk.css",
-    "main.js": "/static/js/main.af282778.chunk.js",
-    "main.js.map": "/static/js/main.af282778.chunk.js.map",
+    "main.js": "/static/js/main.f2de5b4c.chunk.js",
+    "main.js.map": "/static/js/main.f2de5b4c.chunk.js.map",
     "runtime-main.js": "/static/js/runtime-main.97ad9bd8.js",
     "runtime-main.js.map": "/static/js/runtime-main.97ad9bd8.js.map",
     "static/js/2.e4bf4188.chunk.js": "/static/js/2.e4bf4188.chunk.js",
@@ -17,12 +17,15 @@
     "static/media/copy.2327b577.svg": "/static/media/copy.2327b577.svg",
     "static/media/edit.962e7af9.svg": "/static/media/edit.962e7af9.svg",
     "static/media/google-translate.0346cfbe.svg": "/static/media/google-translate.0346cfbe.svg",
-    "static/media/trash.85c719f0.svg": "/static/media/trash.85c719f0.svg"
+    "static/media/section.774f12f9.svg": "/static/media/section.774f12f9.svg",
+    "static/media/trash.85c719f0.svg": "/static/media/trash.85c719f0.svg",
+    "static/media/value.cddb19bc.svg": "/static/media/value.cddb19bc.svg",
+    "static/media/vscode.ea98ae01.svg": "/static/media/vscode.ea98ae01.svg"
   },
   "entrypoints": [
     "static/js/runtime-main.97ad9bd8.js",
     "static/js/2.e4bf4188.chunk.js",
     "static/css/main.eb4ed002.chunk.css",
-    "static/js/main.af282778.chunk.js"
+    "static/js/main.f2de5b4c.chunk.js"
   ]
 }
