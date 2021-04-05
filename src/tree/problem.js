@@ -23,6 +23,16 @@ function findProblemsTraverse(node, languages, sourceMatches, report) {
   switch (node.type) {
     case NodeType.VALUE:
       {
+        node.exactSourceMatches =
+          sourceMatches?.filter(
+            ({ id, type }) => id === node.id && type === MatchType.EXACT
+          ) || [];
+        node.partialSourceMatches =
+          sourceMatches?.filter(
+            ({ id }) =>
+              node.id.startsWith(`${id}.`) || node.id.startsWith(`${id}_plural`)
+          ) || [];
+
         if (
           languages.some(
             (l) => node.values[l] === undefined || node.values[l] === null
@@ -34,16 +44,6 @@ function findProblemsTraverse(node, languages, sourceMatches, report) {
         if (languages.some((l) => !node.values[l].trim())) {
           return report(node.id, Problem.EMPTY);
         }
-
-        node.exactSourceMatches =
-          sourceMatches?.filter(
-            ({ id, type }) => id === node.id && type === MatchType.EXACT
-          ) || [];
-        node.partialSourceMatches =
-          sourceMatches?.filter(
-            ({ id }) =>
-              node.id.startsWith(`${id}.`) || node.id.startsWith(`${id}_plural`)
-          ) || [];
 
         const foundSourceMatch = node.exactSourceMatches.length;
         const foundPartialSourceMatch = node.partialSourceMatches.length;

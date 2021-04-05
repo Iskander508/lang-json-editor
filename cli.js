@@ -115,9 +115,13 @@ wss.on("connection", (connection) => {
   stopAutoClose();
 
   if (argv.source) {
-    getSourceMatches(argv.source, (data) => {
-      connection.send(JSON.stringify(Action.sourceMatchesUpdate(data)));
-    }, argv.verbose);
+    getSourceMatches(
+      argv.source,
+      (data) => {
+        connection.send(JSON.stringify(Action.sourceMatchesUpdate(data)));
+      },
+      argv.verbose
+    );
   }
 
   connection.on("close", () => {
@@ -131,10 +135,11 @@ wss.on("connection", (connection) => {
 
   connection.on("message", (message) => {
     if (argv.verbose) console.log("Message", message);
-    handleAction(JSON.parse(message));
-    clientsConnected.forEach((c) =>
-      c.send(JSON.stringify(Action.dataUpdate(getLanguageData())))
-    );
+    if (handleAction(JSON.parse(message))) {
+      clientsConnected.forEach((c) =>
+        c.send(JSON.stringify(Action.dataUpdate(getLanguageData())))
+      );
+    }
   });
 });
 checkAutoClose();

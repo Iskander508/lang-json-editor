@@ -1,6 +1,7 @@
 const { loadFile, writeFile } = require("./file");
 const lodash = require("lodash");
 const { NodeType } = require("../protocol");
+const openInEditor = require("open-in-editor");
 
 function add(languageFiles, { parentId, type, label }) {
   Object.keys(languageFiles).forEach((language) => {
@@ -46,4 +47,21 @@ function remove(languageFiles, { id }) {
   });
 }
 
-module.exports = { add, changeValue, remove };
+function open({ file, line, column }) {
+  let path = file;
+  if (line) {
+    path += `:${line}`;
+    if (column) {
+      path += `:${column}`;
+    }
+  }
+  const editor = openInEditor.configure(
+    {
+      editor: "code",
+    },
+    (err) => console.error(err)
+  );
+  editor.open(path).catch((err) => console.error(err));
+}
+
+module.exports = { add, changeValue, remove, open };

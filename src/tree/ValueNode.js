@@ -29,6 +29,13 @@ function Value({
   }, [editing]);
 
   const cancelEdit = useCallback(() => onEdit(false), [onEdit]);
+  const change = useCallback(
+    (event) => {
+      onChange(event.target.value);
+      setAutoFocus(false);
+    },
+    [onChange]
+  );
   useEscapeKey(editing && cancelEdit);
 
   return (
@@ -41,7 +48,7 @@ function Value({
             onFocus={() => setFocused(true)}
             autoFocus={autoFocus}
             value={value || ""}
-            onChange={(event) => onChange(event.target.value)}
+            onChange={change}
             ref={(elem) => {
               if (elem && autoFocus) elem.select();
             }}
@@ -199,7 +206,7 @@ export function ValueNode({ node }) {
           })}
         </ValuesContainer>
         <ControlsContainer
-          visible={showControls}
+          visible={showControls || showSources}
           editing={editing}
           onBeginEdit={!disabled && (() => setEditing(true))}
           onConfirmEdit={

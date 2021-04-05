@@ -50,6 +50,8 @@ export default function Tree({
         onChangeValue: (id, language, value) =>
           onSendMessage(Action.changeValue(id, language, value)),
         onRemove: (id) => onSendMessage(Action.remove(id)),
+        onOpen: (file, line, column) =>
+          onSendMessage(Action.open(file, line, column)),
       }}
     >
       {root ? <ObjectNode node={root.content} /> : null}

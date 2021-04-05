@@ -7,6 +7,7 @@ const ActionType = {
   ADD: "ADD",
   CHANGE_VALUE: "CHANGE_VALUE",
   REMOVE: "REMOVE",
+  OPEN: "OPEN",
   DATA_UPDATE: "DATA_UPDATE",
   SOURCE_MATCHES_UPDATE: "SOURCE_MATCHES_UPDATE",
 };
@@ -33,13 +34,19 @@ const Action = {
     action: ActionType.REMOVE,
     id,
   }),
+  open: (file, line, column) => ({
+    action: ActionType.OPEN,
+    file,
+    line,
+    column,
+  }),
   dataUpdate: (data) => ({
     action: ActionType.DATA_UPDATE,
-    data
+    data,
   }),
   sourceMatchesUpdate: (data) => ({
     action: ActionType.SOURCE_MATCHES_UPDATE,
-    data
+    data,
   }),
 };
 

@@ -101,13 +101,16 @@ function handleAction(action) {
   switch (action.action) {
     case ActionType.ADD:
       ACTION.add(languageFiles, action);
-      break;
+      return true;
     case ActionType.CHANGE_VALUE:
       ACTION.changeValue(languageFiles, action);
-      break;
+      return true;
     case ActionType.REMOVE:
       ACTION.remove(languageFiles, action);
-      break;
+      return true;
+    case ActionType.OPEN:
+      ACTION.open(action);
+      return false;
     default:
       console.error("Unknown action:", action.action);
   }
