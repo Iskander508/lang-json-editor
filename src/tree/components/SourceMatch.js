@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import styled from "styled-components";
 import { MatchType } from "../../protocol";
 import { TreeContext } from "../Context";
+import { vscode } from "../images";
 
 export function SourceMatch({
   id,
@@ -18,7 +19,12 @@ export function SourceMatch({
   return (
     <Container type={type}>
       <Header>
-        <File title="Open in VSCode" onClick={() => onOpen(file, line, idPosition ? idPosition + 1 : undefined)}>
+        <File
+          title="Open in VSCode"
+          onClick={() =>
+            onOpen(file, line, idPosition ? idPosition + 1 : undefined)
+          }
+        >
           <FileName>{file}</FileName>:{line}
         </File>
       </Header>
@@ -61,6 +67,10 @@ const File = styled.span`
   &:hover {
     text-decoration: underline;
     cursor: pointer;
+    :after {
+      padding-left: 4px;
+      content: url(${vscode});
+    }
   }
 `;
 const FileName = styled.span`

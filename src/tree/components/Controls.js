@@ -1,6 +1,16 @@
 import React from "react";
 import { bool, func, string } from "prop-types";
-import { add, edit, confirm, cancel, trash, copy, code } from "../images";
+import {
+  add,
+  edit,
+  confirm,
+  cancel,
+  trash,
+  copy,
+  code,
+  section,
+  value,
+} from "../images";
 import styled from "styled-components";
 import { Button } from "./Button";
 import { CopyToClipboard } from "react-copy-to-clipboard";
@@ -26,10 +36,7 @@ function Controls({ operation, buttons, visible = true, copyString }) {
             }}
             title={button.name}
           >
-            {button.image ? (
-              <img src={button.image} width="12" alt={button.name} />
-            ) : null}
-            {button.text ? button.text : null}
+            <img src={button.image} width="12" alt={button.name} />
           </Button>
         ) : null
       )}
@@ -44,7 +51,14 @@ function Controls({ operation, buttons, visible = true, copyString }) {
   );
 }
 
-export function MainControls({ visible, onAdd, onRemove, onEdit, onSources, copyString }) {
+export function MainControls({
+  visible,
+  onAdd,
+  onRemove,
+  onEdit,
+  onSources,
+  copyString,
+}) {
   return (
     <Controls
       visible={visible}
@@ -52,7 +66,11 @@ export function MainControls({ visible, onAdd, onRemove, onEdit, onSources, copy
         onAdd && { name: "add", image: add, callback: onAdd },
         onRemove && { name: "remove", image: trash, callback: onRemove },
         onEdit && { name: "edit", image: edit, callback: onEdit },
-        onSources && { name: "show in sources", image: code, callback: onSources },
+        onSources && {
+          name: "show in sources",
+          image: code,
+          callback: onSources,
+        },
       ]}
       copyString={copyString}
     />
@@ -96,8 +114,8 @@ export function AddControls({ onObject, onValue, onCancel }) {
         image: add,
       }}
       buttons={[
-        { name: "section", text: "{}", callback: onObject },
-        { name: "value", text: '""', callback: onValue },
+        { name: "section", image: section, callback: onObject },
+        { name: "value", image: value, callback: onValue },
         { name: "cancel", image: cancel, callback: onCancel },
       ]}
     />
