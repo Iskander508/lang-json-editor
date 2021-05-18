@@ -127,8 +127,9 @@ export function ValueNode({ node }) {
     }
   }, [disabled, onCancelEdit]);
 
-  const problem = problematicTranslations.find(({ id }) => id === node.id)
-    ?.problem;
+  const problem = problematicTranslations.find(
+    ({ id }) => id === node.id
+  )?.problem;
 
   const additionalProblemHint =
     problem === Problem.NO_MATCH_IN_SOURCES
@@ -176,11 +177,12 @@ export function ValueNode({ node }) {
                     )
                 ));
 
-            const highlight =
-              highlightLanguage &&
-              (problem === Problem.SAME
+            const highlight = highlightLanguage
+              ? problem === Problem.SAME
                 ? `\u26A0 Potential issue: The same as the "${highlightLanguage}" version`
-                : `\u26A0 Potential issue: Different placeholders from the "${highlightLanguage}" version`);
+                : `\u26A0 Potential issue: Different placeholders from the "${highlightLanguage}" version`
+              : problem === Problem.DEFAULT && value === node.id &&
+                `\u26A0 Potential issue: Default placeholder used "${value}"`;
             return (
               <Value
                 key={language}
@@ -261,7 +263,7 @@ const Label = styled.div`
   background-color: ${({ problem }) =>
     problem === Problem.MISSING
       ? "salmon"
-      : problem === Problem.EMPTY
+      : problem === Problem.EMPTY || problem === Problem.DEFAULT
       ? "moccasin"
       : problem === Problem.NO_MATCH_IN_SOURCES
       ? "lightgray"

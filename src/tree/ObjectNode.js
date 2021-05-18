@@ -54,6 +54,8 @@ export function ObjectNode({ node }) {
     ? Problem.EMPTY
     : problems.includes(Problem.NO_MATCH_IN_SOURCES)
     ? Problem.NO_MATCH_IN_SOURCES
+    : problems.includes(Problem.DEFAULT)
+    ? Problem.DEFAULT
     : problems.includes(Problem.SAME)
     ? Problem.SAME
     : undefined;
@@ -158,6 +160,7 @@ const getLabelBackground = ({ id, problem, expanded }) => {
     case Problem.MISSING:
       return expanded ? "pink" : "salmon";
     case Problem.EMPTY:
+    case Problem.DEFAULT:
       return expanded ? "white" : "moccasin";
     case Problem.SAME:
       return expanded ? "white" : "lightcyan";

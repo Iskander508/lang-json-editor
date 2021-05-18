@@ -17,7 +17,7 @@ function add(languageFiles, { parentId, type, label }) {
         item[label] = {};
         break;
       case NodeType.VALUE:
-        item[label] = null;
+        item[label] = parentId ? `${parentId}.${label}` : null;
         break;
       default:
         console.error("Invalid add type:", type);

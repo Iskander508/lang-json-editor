@@ -4,8 +4,9 @@ import { isEqual } from "lodash";
 export const Problem = {
   MISSING: "MISSING", // completely missing
   EMPTY: "EMPTY", // only whitespaces, or empty section
+  DEFAULT: "DEFAULT", // default label used
   SAME: "SAME", // same entry for multiple languages
-  PLACEHOLDER_MISMATCH: "PLACEHOLDER_MISMATCH", // same entry for multiple languages
+  PLACEHOLDER_MISMATCH: "PLACEHOLDER_MISMATCH", // placeholders don't match between languages
   NO_MATCH_IN_SOURCES: "NO_MATCH_IN_SOURCES", // not found in any source file
   PARTIAL_MATCH_IN_SOURCES: "PARTIAL_MATCH_IN_SOURCES", // only parent node found in source files
 };
@@ -59,6 +60,10 @@ function findProblemsTraverse(node, languages, sourceMatches, report) {
             .some((v, index, sorted) => index && v === sorted[index - 1])
         ) {
           return report(node.id, Problem.SAME);
+        }
+
+        if (languages.some((l) => node.values[l] === node.id)) {
+          return report(node.id, Problem.DEFAULT);
         }
 
         if (
