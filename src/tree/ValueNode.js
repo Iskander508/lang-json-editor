@@ -15,8 +15,8 @@ function Value({
   value,
   onChange,
   onEdit,
-  hint,
-  highlight,
+  issues,
+  hintForTranslation,
 }) {
   const [autoFocus, setAutoFocus] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -53,10 +53,10 @@ function Value({
               if (elem && autoFocus) elem.select();
             }}
           />
-          {focused && hint ? (
+          {focused && hintForTranslation ? (
             <TranslateButton
-              text={hint.value}
-              fromLanguage={hint.language}
+              text={hintForTranslation.value}
+              fromLanguage={hintForTranslation.language}
               toLanguage={language}
             />
           ) : null}
@@ -64,14 +64,11 @@ function Value({
       ) : (
         <ValueWrapper
           value={value}
-          highlight={highlight}
+          problems={issues.map(({ problem }) => problem)}
           title={
-            highlight ||
-            (value !== null &&
-              value !== undefined &&
-              !value?.trim() &&
-              "\u26A0 Potential issue: Empty value") ||
-            ""
+            issues.length
+              ? issues.map(({ hint }) => hint).join("\n")
+              : undefined
           }
           onDoubleClick={() => {
             setAutoFocus(true);
@@ -127,16 +124,16 @@ export function ValueNode({ node }) {
     }
   }, [disabled, onCancelEdit]);
 
-  const problem = problematicTranslations.find(
-    ({ id }) => id === node.id
-  )?.problem;
+  const problems =
+    problematicTranslations
+      ?.filter(({ id }) => id === node.id)
+      .map(({ problem }) => problem) || [];
 
-  const additionalProblemHint =
-    problem === Problem.NO_MATCH_IN_SOURCES
-      ? "\u26A0 No match found in the sources"
-      : problem === Problem.PARTIAL_MATCH_IN_SOURCES
-      ? "\u26A0 Partial match in sourcefiles"
-      : "";
+  const problemHints = [];
+  if (problems.includes(Problem.NO_MATCH_IN_SOURCES))
+    problemHints.push("\u26A0 No match found in the sources");
+  if (problems.includes(Problem.PARTIAL_MATCH_IN_SOURCES))
+    problemHints.push("\u26A0 Partial match in sourcefiles");
 
   const hasSourceMatches =
     node.exactSourceMatches?.length || node.partialSourceMatches?.length;
@@ -148,54 +145,85 @@ export function ValueNode({ node }) {
       >
         <Label
           title={
-            additionalProblemHint
-              ? `${node.id}\n${additionalProblemHint}`
+            problemHints.length
+              ? `${node.id}\n${problemHints.join("\n")}`
               : node.id
           }
-          problem={problem}
+          problems={problems}
         >
           {node.name}
         </Label>
         <ValuesContainer>
           {languages.map((language) => {
             const value = values[language];
+            const issues = [];
+
+            if (
+              problems.includes(Problem.MISSING) &&
+              (value === undefined || value === null)
+            ) {
+              issues.push({
+                problem: Problem.MISSING,
+                hint: "\u26A0 issue: Missing value",
+              });
+            } else if (problems.includes(Problem.EMPTY) && !value?.trim()) {
+              issues.push({
+                problem: Problem.EMPTY,
+                hint: "\u26A0 Potential issue: Empty value",
+              });
+            }
+
+            if (problems.includes(Problem.DEFAULT) && value === node.id) {
+              issues.push({
+                problem: Problem.DEFAULT,
+                hint: `\u26A0 Potential issue: Default value used "${value}"`,
+              });
+            }
+
+            if (problems.includes(Problem.SAME)) {
+              const sameAsLanguage = Object.keys(values).find(
+                (l) => l !== language && values[l] === value
+              );
+              if (sameAsLanguage)
+                issues.push({
+                  problem: Problem.SAME,
+                  hint: `\u26A0 Potential issue: The same as the "${sameAsLanguage}" version`,
+                });
+            }
+
+            if (problems.includes(Problem.PLACEHOLDER_MISMATCH)) {
+              const differentInLanguage = Object.keys(values).find(
+                (l) =>
+                  l !== language &&
+                  !isEqual(
+                    extractPlaceholders(values[l]),
+                    extractPlaceholders(value)
+                  )
+              );
+              if (differentInLanguage)
+                issues.push({
+                  problem: Problem.PLACEHOLDER_MISMATCH,
+                  hint: `\u26A0 Potential issue: Different placeholders from the "${differentInLanguage}" version`,
+                });
+            }
+
             const hintLanguage = Object.keys(values).find(
               (l) => l !== language && values[l]
             );
-            const highlightLanguage =
-              (problem === Problem.SAME &&
-                Object.keys(values).find(
-                  (l) => l !== language && values[l] === value
-                )) ||
-              (problem === Problem.PLACEHOLDER_MISMATCH &&
-                Object.keys(values).find(
-                  (l) =>
-                    l !== language &&
-                    !isEqual(
-                      extractPlaceholders(values[l]),
-                      extractPlaceholders(value)
-                    )
-                ));
 
-            const highlight = highlightLanguage
-              ? problem === Problem.SAME
-                ? `\u26A0 Potential issue: The same as the "${highlightLanguage}" version`
-                : `\u26A0 Potential issue: Different placeholders from the "${highlightLanguage}" version`
-              : problem === Problem.DEFAULT && value === node.id &&
-                `\u26A0 Potential issue: Default placeholder used "${value}"`;
             return (
               <Value
                 key={language}
                 language={language}
                 editing={editing}
-                hint={
+                issues={issues}
+                value={value}
+                hintForTranslation={
                   hintLanguage && {
                     language: hintLanguage,
                     value: values[hintLanguage],
                   }
                 }
-                value={value}
-                highlight={highlight}
                 onChange={(v) => setValues({ ...values, [language]: v })}
                 onEdit={(v) => {
                   setEditing(!disabled && v);
@@ -260,16 +288,16 @@ const Container = styled.div`
 
 const Label = styled.div`
   cursor: default;
-  background-color: ${({ problem }) =>
-    problem === Problem.MISSING
+  background-color: ${({ problems }) =>
+    problems.includes(Problem.MISSING)
       ? "salmon"
-      : problem === Problem.EMPTY || problem === Problem.DEFAULT
+      : problems.includes(Problem.EMPTY) || problems.includes(Problem.DEFAULT)
       ? "moccasin"
-      : problem === Problem.NO_MATCH_IN_SOURCES
+      : problems.includes(Problem.NO_MATCH_IN_SOURCES)
       ? "lightgray"
-      : problem === Problem.PARTIAL_MATCH_IN_SOURCES
+      : problems.includes(Problem.PARTIAL_MATCH_IN_SOURCES)
       ? "darkseagreen"
-      : problem
+      : problems.length
       ? "lightcyan"
       : "lightgreen"};
   font-family: monospace, monospace;
@@ -304,12 +332,12 @@ const ValueContainer = styled.div`
 const ValueWrapper = styled.div`
   padding: 0 8px;
   border: 0.5px solid black;
-  ${({ value, highlight }) =>
-    value === undefined || value === null
+  ${({ problems }) =>
+    problems.includes(Problem.MISSING)
       ? "background-color: red; color: white; font-style: italic; font-family: sans-serif, monospace;"
-      : !value.trim()
+      : problems.includes(Problem.EMPTY)
       ? "background-color: orange;"
-      : highlight
+      : problems.length
       ? "background-color: lightcyan;"
       : ""}
 `;

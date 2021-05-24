@@ -12,7 +12,7 @@ export const Problem = {
 };
 
 export function extractPlaceholders(value) {
-  const matches = value.match(/{{\w+}}/g);
+  const matches = value?.match(/{{\w+}}/g);
   if (!matches) return [];
 
   return Array.from(
@@ -39,18 +39,18 @@ function findProblemsTraverse(node, languages, sourceMatches, report) {
             (l) => node.values[l] === undefined || node.values[l] === null
           )
         ) {
-          return report(node.id, Problem.MISSING);
-        }
-
-        if (languages.some((l) => !node.values[l].trim())) {
-          return report(node.id, Problem.EMPTY);
+          report(node.id, Problem.MISSING);
+        } else if (languages.some((l) => !node.values[l].trim())) {
+          report(node.id, Problem.EMPTY);
         }
 
         const foundSourceMatch = node.exactSourceMatches.length;
         const foundPartialSourceMatch = node.partialSourceMatches.length;
         if (!foundSourceMatch) {
-          if (!foundPartialSourceMatch) {
-            return report(node.id, Problem.NO_MATCH_IN_SOURCES);
+          if (foundPartialSourceMatch) {
+            report(node.id, Problem.PARTIAL_MATCH_IN_SOURCES);
+          } else {
+            report(node.id, Problem.NO_MATCH_IN_SOURCES);
           }
         }
 
@@ -59,11 +59,11 @@ function findProblemsTraverse(node, languages, sourceMatches, report) {
             .sort()
             .some((v, index, sorted) => index && v === sorted[index - 1])
         ) {
-          return report(node.id, Problem.SAME);
+          report(node.id, Problem.SAME);
         }
 
         if (languages.some((l) => node.values[l] === node.id)) {
-          return report(node.id, Problem.DEFAULT);
+          report(node.id, Problem.DEFAULT);
         }
 
         if (
@@ -74,13 +74,7 @@ function findProblemsTraverse(node, languages, sourceMatches, report) {
                 index && !isEqual(placeholders, all[index - 1])
             )
         ) {
-          return report(node.id, Problem.PLACEHOLDER_MISMATCH);
-        }
-
-        if (!foundSourceMatch) {
-          if (foundPartialSourceMatch) {
-            return report(node.id, Problem.PARTIAL_MATCH_IN_SOURCES);
-          }
+          report(node.id, Problem.PLACEHOLDER_MISMATCH);
         }
       }
       break;

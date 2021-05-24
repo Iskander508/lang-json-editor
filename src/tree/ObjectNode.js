@@ -46,9 +46,9 @@ export function ObjectNode({ node }) {
   useEscapeKey(adding && stopAdding);
 
   const problems = problematicTranslations
-    .filter(({ id }) => id.startsWith(node.id))
+    .filter(({ id }) => id === node.id || id.startsWith(`${node.id}.`))
     .map(({ problem }) => problem);
-  const problem = problems.includes(Problem.MISSING)
+  const mainProblem = problems.includes(Problem.MISSING)
     ? Problem.MISSING
     : problems.includes(Problem.EMPTY)
     ? Problem.EMPTY
@@ -88,7 +88,7 @@ export function ObjectNode({ node }) {
       >
         <Label
           id={node.id}
-          problem={problem}
+          problem={mainProblem}
           expanded={expanded}
           title={node.id}
         >
