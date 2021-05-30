@@ -1,6 +1,7 @@
 import { MatchType, NodeType } from "../protocol";
 import { isEqual } from "lodash";
 
+export const NO_PROBLEM = "NO_PROBLEM";
 export const Problem = {
   MISSING: "MISSING", // completely missing
   EMPTY: "EMPTY", // only whitespaces, or empty section

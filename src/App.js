@@ -2,9 +2,12 @@ import Footer from "./Footer";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import { useCallback, useEffect, useState } from "react";
 import Tree from "./tree/Tree";
+import { Problem, NO_PROBLEM } from "./tree/problem";
 import styled from "styled-components";
 import { ActionType } from "./protocol";
 import { getServerHost } from "./tree/util";
+
+const ALL_PROBLEMS = [NO_PROBLEM, ...Object.values(Problem)];
 
 export default function App() {
   const serverHost = getServerHost();
@@ -13,6 +16,8 @@ export default function App() {
 
   const [caseSensitive, setCaseSensitive] = useState(false);
   const [filter, setFilter] = useState("");
+  const [showProblemsFilter, setShowProblemsFilter] = useState(false);
+  const [filteredProblems, setFilteredProblems] = useState([]);
 
   const [sourceMatches, setSourceMatches] = useState();
   const [data, setData] = useState();
@@ -104,6 +109,32 @@ export default function App() {
               onChange={(event) => setCaseSensitive(event.target.checked)}
             />
             case sensitive
+            <ProblemsFilterWrapper>
+              <button onClick={() => setShowProblemsFilter((s) => !s)}>
+                Problems
+              </button>
+              {showProblemsFilter && (
+                <ProblemsFilter>
+                  {ALL_PROBLEMS.map((v) => (
+                    <span key={v}>
+                      <input
+                        type="checkbox"
+                        name={v}
+                        checked={filteredProblems.includes(v)}
+                        onChange={(event) =>
+                          setFilteredProblems((prev) =>
+                            event.target.checked
+                              ? [...prev, v]
+                              : prev.filter((x) => x !== v)
+                          )
+                        }
+                      />
+                      {v}
+                    </span>
+                  ))}
+                </ProblemsFilter>
+              )}
+            </ProblemsFilterWrapper>
           </span>
         </Filter>
       </TopBar>
@@ -114,7 +145,7 @@ export default function App() {
           sourceMatches={sourceMatches}
           collapseAll={collapseAll}
           onCollapseChange={onCollapseChange}
-          filter={{ text: filter, caseSensitive }}
+          filter={{ text: filter, caseSensitive, problems: filteredProblems }}
           onSendMessage={onSendMessage}
           disabled={readyState !== ReadyState.OPEN}
         />
@@ -160,12 +191,26 @@ const Filter = styled.div`
   justify-content: space-around;
 `;
 
+const ProblemsFilterWrapper = styled.div`
+  position: relative;
+`;
+
 const FilterInput = styled.input`
   font-family: monospace, monospace;
   font-size: 16px;
   padding: 0 8px;
   margin-left: 1em;
   min-width: min(50vw, 400px);
+`;
+
+const ProblemsFilter = styled.div`
+  position: absolute;
+  background-color: #ffffff;
+  border: 0.5px solid black;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
 `;
 
 const Content = styled.div`

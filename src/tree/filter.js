@@ -33,3 +33,27 @@ export function findFilteredIDs(node, filter, caseSensitive) {
   });
   return ids;
 }
+
+function findIDsTraverse(node, report) {
+  switch (node.type) {
+    case NodeType.VALUE:
+      report(node.id);
+      break;
+    case NodeType.OBJECT:
+      if (!node.children.length) {
+        report(node.id);
+      }
+      node.children.forEach((n) => findIDsTraverse(n, report));
+      break;
+    default:
+      throw new Error(`Invalid type: ${node.type}`);
+  }
+}
+
+export function findIDs(node) {
+  const ids = [];
+  findIDsTraverse(node, (id) => {
+    ids.push(id);
+  });
+  return ids;
+}

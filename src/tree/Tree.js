@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { Action } from "../protocol";
-import { findProblems } from "./problem";
-import { findFilteredIDs } from "./filter";
+import { findProblems, NO_PROBLEM } from "./problem";
+import { findIDs, findFilteredIDs } from "./filter";
 import { TreeContext } from "./Context";
 import { ObjectNode } from "./ObjectNode";
 
 export default function Tree({
   data,
   sourceMatches,
-  filter: { text: filter, caseSensitive },
+  filter: { text: textFilter, caseSensitive, problems: problemsFilter },
   onSendMessage,
   disabled,
   collapseAll,
@@ -28,14 +28,39 @@ export default function Tree({
     }
   }, [sourceMatches, root]);
 
-  const [filteredIds, setFilteredIds] = useState();
+  const [textFilteredIds, setTextFilteredIds] = useState();
   useEffect(() => {
-    if (root && filter) {
-      setFilteredIds(findFilteredIDs(root.content, filter, caseSensitive));
+    if (root && textFilter) {
+      setTextFilteredIds(
+        findFilteredIDs(root.content, textFilter, caseSensitive)
+      );
     } else {
-      setFilteredIds();
+      setTextFilteredIds();
     }
-  }, [caseSensitive, filter, root]);
+  }, [caseSensitive, textFilter, root]);
+
+  let filteredIds = textFilteredIds;
+  if (root && problemsFilter?.length) {
+    const IDs = textFilteredIds || findIDs(root.content);
+
+    const problemIdMap = problematicTranslations.reduce(
+      (aggr, { id, problem }) => {
+        if (aggr[id]) {
+          aggr[id].push(problem);
+        } else {
+          aggr[id] = [problem];
+        }
+        return aggr;
+      },
+      {}
+    );
+
+    filteredIds = IDs.filter(
+      (id) =>
+        (problemsFilter.includes(NO_PROBLEM) && !problemIdMap[id]) ||
+        problemIdMap[id]?.some((problem) => problemsFilter.includes(problem))
+    );
+  }
 
   return (
     <TreeContext.Provider
