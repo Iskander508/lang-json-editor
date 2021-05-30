@@ -1,6 +1,6 @@
 {
   "name": "lang_json_editor",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "bin": "./cli.js",
   "dependencies": {
     "express": "^4.17.1",
