@@ -4,7 +4,10 @@ import ControlsContainer from "./components/ControlsContainer";
 import styled from "styled-components";
 import { TreeContext } from "./Context";
 import { useEscapeKey } from "./util";
-import { TranslateButton } from "./components/TranslateButton";
+import {
+  GoogleTranslateButton,
+  DeepLTranslateButton,
+} from "./components/TranslateButton";
 import { Problem, extractPlaceholders } from "./problem";
 import { isEqual } from "lodash";
 import { SourceMatch } from "./components/SourceMatch";
@@ -54,11 +57,19 @@ function Value({
             }}
           />
           {focused && hintForTranslation ? (
-            <TranslateButton
-              text={hintForTranslation.value}
-              fromLanguage={hintForTranslation.language}
-              toLanguage={language}
-            />
+            <>
+              <DeepLTranslateButton
+                text={hintForTranslation.value}
+                fromLanguage={hintForTranslation.language}
+                toLanguage={language}
+                onResult={onChange}
+              />
+              <GoogleTranslateButton
+                text={hintForTranslation.value}
+                fromLanguage={hintForTranslation.language}
+                toLanguage={language}
+              />
+            </>
           ) : null}
         </>
       ) : (

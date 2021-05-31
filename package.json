@@ -3,6 +3,7 @@
   "version": "0.4.5",
   "bin": "./cli.js",
   "dependencies": {
+    "deepl": "^1.0.9",
     "express": "^4.17.1",
     "glob": "^7.1.6",
     "lodash": "^4.17.21",

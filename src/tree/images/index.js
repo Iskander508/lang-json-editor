@@ -9,4 +9,5 @@ export { default as section } from './section.svg';
 export { default as value } from './value.svg';
 export { default as vscode } from './vscode.svg';
 export { default as googleTranslate } from './google-translate.svg';
+export { default as deepl } from './deepl.svg';
 

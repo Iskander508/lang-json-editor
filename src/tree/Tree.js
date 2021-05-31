@@ -14,34 +14,29 @@ export default function Tree({
   collapseAll,
   onCollapseChange,
 }) {
-  const [root, setRoot] = useState(data);
-  useEffect(() => {
-    setRoot(data);
-  }, [data]);
-
   const [problematicTranslations, setProblematicTranslations] = useState([]);
   useEffect(() => {
-    if (root?.languages?.length) {
+    if (data?.languages?.length) {
       setProblematicTranslations(
-        findProblems(root.content, root.languages, sourceMatches)
+        findProblems(data.content, data.languages, sourceMatches)
       );
     }
-  }, [sourceMatches, root]);
+  }, [sourceMatches, data]);
 
   const [textFilteredIds, setTextFilteredIds] = useState();
   useEffect(() => {
-    if (root && textFilter) {
+    if (data && textFilter) {
       setTextFilteredIds(
-        findFilteredIDs(root.content, textFilter, caseSensitive)
+        findFilteredIDs(data.content, textFilter, caseSensitive)
       );
     } else {
       setTextFilteredIds();
     }
-  }, [caseSensitive, textFilter, root]);
+  }, [caseSensitive, textFilter, data]);
 
   let filteredIds = textFilteredIds;
-  if (root && problemsFilter?.length) {
-    const IDs = textFilteredIds || findIDs(root.content);
+  if (data && problemsFilter?.length) {
+    const IDs = textFilteredIds || findIDs(data.content);
 
     const problemIdMap = problematicTranslations.reduce(
       (aggr, { id, problem }) => {
@@ -70,7 +65,8 @@ export default function Tree({
         disabled,
         filteredIds,
         problematicTranslations,
-        languages: root?.languages,
+        languages: data?.languages,
+        deepL: data?.deepL,
         onAdd: (id, type, label) => onSendMessage(Action.add(id, type, label)),
         onChangeValue: (id, language, value) =>
           onSendMessage(Action.changeValue(id, language, value)),
@@ -79,7 +75,7 @@ export default function Tree({
           onSendMessage(Action.open(file, line, column)),
       }}
     >
-      {root ? <ObjectNode node={root.content} /> : null}
+      {data ? <ObjectNode node={data.content} /> : null}
     </TreeContext.Provider>
   );
 }

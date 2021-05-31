@@ -1,13 +1,11 @@
 import Footer from "./Footer";
 import useWebSocket, { ReadyState } from "react-use-websocket";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import Tree from "./tree/Tree";
 import { Problem, NO_PROBLEM } from "./tree/problem";
 import styled from "styled-components";
 import { ActionType } from "./protocol";
 import { getServerHost } from "./tree/util";
-
-const ALL_PROBLEMS = [NO_PROBLEM, ...Object.values(Problem)];
 
 export default function App() {
   const serverHost = getServerHost();
@@ -71,6 +69,18 @@ export default function App() {
         .then(setData);
     }
   }, [readyState, serverHost]);
+
+  const hasSources = !!sourceMatches;
+  const ALL_PROBLEMS = useMemo(
+    () =>
+      [NO_PROBLEM, ...Object.values(Problem)].filter(
+        (p) =>
+          hasSources ||
+          (p !== Problem.NO_MATCH_IN_SOURCES &&
+            p !== Problem.PARTIAL_MATCH_IN_SOURCES)
+      ),
+    [hasSources]
+  );
 
   return (
     <AppContainer>

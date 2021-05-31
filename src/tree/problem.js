@@ -95,6 +95,7 @@ function findProblemsTraverse(node, languages, sourceMatches, report) {
 export function findProblems(node, languages, sourceMatches) {
   const problems = [];
   findProblemsTraverse(node, languages, sourceMatches, (id, problem) => {
+    if (!sourceMatches && problem === Problem.NO_MATCH_IN_SOURCES) return;
     problems.push({ id, problem });
   });
   return problems;
