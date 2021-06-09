@@ -1,6 +1,6 @@
 {
   "name": "lang_json_editor",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "bin": "./cli.js",
   "dependencies": {
     "deepl": "^1.0.9",
