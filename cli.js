@@ -83,15 +83,17 @@ if (argv.verbose) {
 
 const app = express();
 
+function getData() {
+  return {
+    ...getLanguageData(),
+    deepL: !!argv.deeplKey,
+  };
+}
+
 app.get("/data", (req, res) => {
   if (argv.verbose) console.log("Requested", req.url);
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.send(
-    JSON.stringify({
-      ...getLanguageData(),
-      deepL: !!argv.deeplKey,
-    })
-  );
+  res.send(JSON.stringify(getData()));
 });
 
 app.get("/translate", (req, res) => {
@@ -170,7 +172,7 @@ wss.on("connection", (connection) => {
     if (argv.verbose) console.log("Message", message);
     if (handleAction(JSON.parse(message))) {
       clientsConnected.forEach((c) =>
-        c.send(JSON.stringify(Action.dataUpdate(getLanguageData())))
+        c.send(JSON.stringify(Action.dataUpdate(getData())))
       );
     }
   });
