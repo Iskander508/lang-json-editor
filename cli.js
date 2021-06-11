@@ -75,8 +75,6 @@ if (argv.verbose) {
   console.log("Initialized with languages", langs);
 }
 
-const app = express();
-
 function getData() {
   return {
     ...getLanguageData(),
@@ -84,13 +82,18 @@ function getData() {
   };
 }
 
+const app = express();
+app.set('etag', false);
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store')
+  next()
+})
+
 app.get("/data", (req, res) => {
   if (argv.verbose) console.log("Requested", req.url);
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.send(JSON.stringify(getData()));
 });
-
-
 
 app.get("/", (req, res) => {
   if (argv.verbose) console.log("Requested", req.url);
