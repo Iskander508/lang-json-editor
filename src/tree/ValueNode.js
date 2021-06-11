@@ -57,7 +57,7 @@ function Value({
             }}
           />
           {focused && hintForTranslation ? (
-            <>
+            <ValueButtons>
               <DeepLTranslateButton
                 text={hintForTranslation.value}
                 fromLanguage={hintForTranslation.language}
@@ -69,7 +69,7 @@ function Value({
                 fromLanguage={hintForTranslation.language}
                 toLanguage={language}
               />
-            </>
+            </ValueButtons>
           ) : null}
         </>
       ) : (
@@ -89,11 +89,16 @@ function Value({
             if (elem) {
               const width = elem.offsetWidth;
               const height = elem.offsetHeight;
+              const left = elem.offsetLeft || 0;
               if (
                 inputStyle?.width !== width ||
                 inputStyle?.height !== height
               ) {
-                setInputStyle({ width, height });
+                setInputStyle({
+                  width,
+                  height,
+                  maxWidth: document.body.offsetWidth - left - 100,
+                });
               }
             }
           }}
@@ -219,7 +224,7 @@ export function ValueNode({ node }) {
             }
 
             const hintLanguage = Object.keys(values).find(
-              (l) => l !== language && values[l]
+              (l) => l !== language && values[l] && values[l] !== node.id
             );
 
             return (
@@ -355,4 +360,10 @@ const ValueWrapper = styled.div`
 
 const ValueEditor = styled.textarea`
   font-size: 16px;
+  min-height: 1em;
+`;
+
+const ValueButtons = styled.div`
+  display: flex;
+  flex-direction: column;
 `;

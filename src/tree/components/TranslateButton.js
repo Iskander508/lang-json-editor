@@ -1,8 +1,8 @@
 import React, { useCallback, useContext, useState } from "react";
 import { googleTranslate, deepl } from "../images";
 import { Button } from "./Button";
-import { getServerHost } from "../util";
 import { TreeContext } from "../Context";
+import deepLTranslate from "deepl";
 
 export function GoogleTranslateButton({ text, fromLanguage, toLanguage }) {
   const title = "Open on GoogleTranslate";
@@ -29,21 +29,22 @@ export function DeepLTranslateButton({
 }) {
   const title = "Translate with DeepL";
   const [loading, setLoading] = useState(false);
+  const { deepLKey } = useContext(TreeContext);
   const onClick = useCallback(() => {
     setLoading(true);
-    const url = new URL("/translate", `http://${getServerHost()}`);
-    url.searchParams.set("text", text);
-    url.searchParams.set("source_lang", fromLanguage.toUpperCase());
-    url.searchParams.set("target_lang", toLanguage.toUpperCase());
-    fetch(url.href)
-      .then((response) => response.text())
-      .then(onResult)
+    deepLTranslate({
+      text,
+      source_lang: fromLanguage.toUpperCase(),
+      target_lang: toLanguage.toUpperCase(),
+      auth_key: deepLKey,
+      free_api: deepLKey.endsWith(":fx"),
+    })
+      .then((result) => onResult(result.data.translations[0].text))
+      .catch((error) => console.error(error))
       .finally(() => setLoading(false));
-  }, [text, fromLanguage, toLanguage, onResult]);
+  }, [deepLKey, text, fromLanguage, toLanguage, onResult]);
 
-  const { deepL } = useContext(TreeContext);
-
-  return !deepL ? null : (
+  return !deepLKey ? null : (
     <Button title={title} onClick={onClick} loading={loading}>
       <img src={deepl} width="12" alt={title} />
     </Button>

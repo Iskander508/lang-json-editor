@@ -3,7 +3,6 @@
   "version": "0.4.7",
   "bin": "./cli.js",
   "dependencies": {
-    "deepl": "^1.0.9",
     "express": "^4.17.1",
     "glob": "^7.1.6",
     "lodash": "^4.17.21",
@@ -13,6 +12,7 @@
     "yargs": "^16.2.0"
   },
   "devDependencies": {
+    "deepl": "^1.0.9",
     "prop-types": "^15.7.2",
     "react": "^17.0.1",
     "react-copy-to-clipboard": "^5.0.3",

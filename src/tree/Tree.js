@@ -66,7 +66,7 @@ export default function Tree({
         filteredIds,
         problematicTranslations,
         languages: data?.languages,
-        deepL: data?.deepL,
+        deepLKey: data?.deepLKey,
         onAdd: (id, type, label) => onSendMessage(Action.add(id, type, label)),
         onChangeValue: (id, language, value) =>
           onSendMessage(Action.changeValue(id, language, value)),

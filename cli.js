@@ -49,11 +49,6 @@ Starts Editor server
       type: "string",
       describe: "Authentication key to DeepL API",
     },
-    deeplFree: {
-      type: "boolean",
-      default: true,
-      describe: "Whether to use DeepL Pro or free API",
-    },
   })
   .strict()
   .help()
@@ -66,7 +61,6 @@ const express = require("express");
 const path = require("path");
 const http = require("http");
 const WebSocket = require("ws");
-const translate = require("deepl");
 
 const {
   getLanguageData,
@@ -86,7 +80,7 @@ const app = express();
 function getData() {
   return {
     ...getLanguageData(),
-    deepL: !!argv.deeplKey,
+    deepLKey: argv.deeplKey,
   };
 }
 
@@ -96,22 +90,7 @@ app.get("/data", (req, res) => {
   res.send(JSON.stringify(getData()));
 });
 
-app.get("/translate", (req, res) => {
-  if (argv.verbose) console.log("Requested", req.url);
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  translate({
-    ...req.query,
-    auth_key: argv.deeplKey,
-    free_api: argv.deeplFree,
-  })
-    .then((result) => {
-      if (argv.verbose) console.log("Result", result.data);
-      res.send(result.data.translations[0].text);
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-});
+
 
 app.get("/", (req, res) => {
   if (argv.verbose) console.log("Requested", req.url);
