@@ -1,7 +1,13 @@
+import { TNode } from "./util";
 import { NodeType } from "../protocol";
 
-function findFilteredIDsTraverse(node, filter, caseSensitive, report) {
-  function isMatch(id) {
+function findFilteredIDsTraverse(
+  node: TNode,
+  filter: string,
+  caseSensitive: boolean,
+  report: (id: string) => void
+) {
+  function isMatch(id?: string) {
     return caseSensitive
       ? id?.includes(filter)
       : id?.toLowerCase().includes(filter.toLowerCase());
@@ -26,15 +32,19 @@ function findFilteredIDsTraverse(node, filter, caseSensitive, report) {
   }
 }
 
-export function findFilteredIDs(node, filter, caseSensitive) {
-  const ids = [];
+export function findFilteredIDs(
+  node: TNode,
+  filter: string,
+  caseSensitive: boolean
+) {
+  const ids: string[] = [];
   findFilteredIDsTraverse(node, filter, caseSensitive, (id) => {
     ids.push(id);
   });
   return ids;
 }
 
-function findIDsTraverse(node, report) {
+function findIDsTraverse(node: TNode, report: (id: string) => void) {
   switch (node.type) {
     case NodeType.VALUE:
       report(node.id);
@@ -50,8 +60,8 @@ function findIDsTraverse(node, report) {
   }
 }
 
-export function findIDs(node) {
-  const ids = [];
+export function findIDs(node: TNode) {
+  const ids: string[] = [];
   findIDsTraverse(node, (id) => {
     ids.push(id);
   });

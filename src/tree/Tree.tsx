@@ -1,9 +1,37 @@
 import { useEffect, useState } from "react";
 import { Action } from "../protocol";
-import { findProblems, NO_PROBLEM } from "./problem";
+import {
+  findProblems,
+  NO_PROBLEM,
+  Problem,
+  TFindProblemsResult,
+} from "./problem";
 import { findIDs, findFilteredIDs } from "./filter";
 import { TreeContext } from "./Context";
 import { ObjectNode } from "./ObjectNode";
+import { TSourceMatch } from "./components/SourceMatch";
+import { TNode } from "./util";
+
+type TProblemsFilter = Array<Problem | typeof NO_PROBLEM>;
+type TFilter = {
+  text: string;
+  caseSensitive: boolean;
+  problems: TProblemsFilter;
+};
+type TreeData = {
+  content: TNode;
+  languages?: string[];
+  deepLKey?: string;
+};
+type TreeProps = {
+  data?: TreeData;
+  sourceMatches?: TSourceMatch[];
+  filter: TFilter;
+  onSendMessage: (message: object) => void;
+  disabled?: boolean;
+  collapseAll?: boolean;
+  onCollapseChange: () => void;
+};
 
 export default function Tree({
   data,
@@ -13,8 +41,9 @@ export default function Tree({
   disabled,
   collapseAll,
   onCollapseChange,
-}) {
-  const [problematicTranslations, setProblematicTranslations] = useState([]);
+}: TreeProps) {
+  const [problematicTranslations, setProblematicTranslations] =
+    useState<TFindProblemsResult>([]);
   useEffect(() => {
     if (data?.languages?.length) {
       setProblematicTranslations(
@@ -23,14 +52,14 @@ export default function Tree({
     }
   }, [sourceMatches, data]);
 
-  const [textFilteredIds, setTextFilteredIds] = useState();
+  const [textFilteredIds, setTextFilteredIds] = useState<string[]>();
   useEffect(() => {
     if (data && textFilter) {
       setTextFilteredIds(
         findFilteredIDs(data.content, textFilter, caseSensitive)
       );
     } else {
-      setTextFilteredIds();
+      setTextFilteredIds(undefined);
     }
   }, [caseSensitive, textFilter, data]);
 
@@ -38,17 +67,16 @@ export default function Tree({
   if (data && problemsFilter?.length) {
     const IDs = textFilteredIds || findIDs(data.content);
 
-    const problemIdMap = problematicTranslations.reduce(
-      (aggr, { id, problem }) => {
-        if (aggr[id]) {
-          aggr[id].push(problem);
-        } else {
-          aggr[id] = [problem];
-        }
-        return aggr;
-      },
-      {}
-    );
+    const problemIdMap = problematicTranslations.reduce<{
+      [id: string]: Problem[];
+    }>((aggr, { id, problem }) => {
+      if (aggr[id]) {
+        aggr[id].push(problem);
+      } else {
+        aggr[id] = [problem];
+      }
+      return aggr;
+    }, {});
 
     filteredIds = IDs.filter(
       (id) =>

@@ -1,9 +1,25 @@
+import { TSourceMatch } from "./components/SourceMatch";
 import { useEffect } from "react";
+import { NodeType } from "../protocol";
 
-export const useEscapeKey = (onEscape) => {
+export interface TNodeValues {
+  [language: string]: string;
+}
+
+export type TNode = {
+  id: string;
+  name: string;
+  type: keyof typeof NodeType;
+  exactSourceMatches: TSourceMatch[];
+  partialSourceMatches: TSourceMatch[];
+  values: TNodeValues;
+  children: TNode[];
+};
+
+export const useEscapeKey = (onEscape?: () => void) => {
   useEffect(() => {
     if (!onEscape) return;
-    const handleEsc = (event) => {
+    const handleEsc = (event: KeyboardEvent) => {
       if (event.keyCode === 27) onEscape();
     };
     window.addEventListener("keydown", handleEsc);

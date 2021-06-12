@@ -1,13 +1,24 @@
 import { useEffect, useState } from "react";
-import { func, bool, string } from "prop-types";
 import { MainControls, ConfirmControls, AddControls } from "./Controls";
 import { NodeType } from "../../protocol";
 import { useEscapeKey } from "../util";
 
-export const ConfirmationModes = {
-  remove: "REMOVE_MODE",
-  edit: "EDIT_MODE",
-  add: "ADD_MODE",
+export enum ConfirmationModes {
+  remove = "REMOVE_MODE",
+  edit = "EDIT_MODE",
+  add = "ADD_MODE",
+}
+
+type TControlsContainerProps = {
+  editing?: boolean;
+  visible?: boolean;
+  onAdd?: (type: keyof typeof NodeType) => void;
+  onRemove?: () => void;
+  onConfirmEdit?: () => void;
+  onCancelEdit?: () => void;
+  onBeginEdit?: () => void;
+  onSources?: () => void;
+  copyString?: string;
 };
 
 export const ControlsContainer = ({
@@ -17,10 +28,10 @@ export const ControlsContainer = ({
   onRemove,
   onConfirmEdit,
   onCancelEdit,
-  onBeginEdit,
+  onBeginEdit = () => {},
   onSources,
   copyString,
-}) => {
+}: TControlsContainerProps) => {
   const [mode, setMode] = useState(
     editing ? ConfirmationModes.edit : undefined
   );
@@ -28,10 +39,12 @@ export const ControlsContainer = ({
     setMode(editing ? ConfirmationModes.edit : undefined);
   }, [editing]);
 
-  const withResetMode = (fn, ...args) => () => {
-    setMode(undefined);
-    fn?.(...args);
-  };
+  function withResetMode(fn?: () => void) {
+    return () => {
+      setMode(undefined);
+      fn?.();
+    };
+  }
 
   useEscapeKey(
     mode &&
@@ -42,8 +55,10 @@ export const ControlsContainer = ({
     case ConfirmationModes.add:
       return (
         <AddControls
-          onObject={withResetMode(onAdd, NodeType.OBJECT)}
-          onValue={withResetMode(onAdd, NodeType.VALUE)}
+          // @ts-ignore
+          onObject={withResetMode(() => onAdd?.(NodeType.OBJECT))}
+          // @ts-ignore
+          onValue={withResetMode(() => onAdd?.(NodeType.VALUE))}
           onCancel={withResetMode()}
         />
       );
@@ -78,22 +93,6 @@ export const ControlsContainer = ({
         />
       );
   }
-};
-
-ControlsContainer.propTypes = {
-  editing: bool,
-  visible: bool,
-  onAdd: func,
-  onRemove: func,
-  onConfirmEdit: func,
-  onCancelEdit: func,
-  onBeginEdit: func,
-  onSources: func,
-  copyString: string,
-};
-
-ControlsContainer.defaultProps = {
-  onBeginEdit: () => {},
 };
 
 export default ControlsContainer;

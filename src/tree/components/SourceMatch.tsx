@@ -4,6 +4,15 @@ import { MatchType } from "../../protocol";
 import { TreeContext } from "../Context";
 import { vscode } from "../images";
 
+export interface TSourceMatch {
+  id: string;
+  file: string;
+  line: number;
+  contextStartLine: number;
+  context: string[];
+  type: keyof typeof MatchType;
+}
+
 export function SourceMatch({
   id,
   file,
@@ -11,9 +20,10 @@ export function SourceMatch({
   contextStartLine,
   context,
   type,
-}) {
+}: TSourceMatch) {
   const { onOpen } = useContext(TreeContext);
-  let idPosition = context[line - contextStartLine]?.indexOf(id);
+  let idPosition: number | undefined =
+    context[line - contextStartLine]?.indexOf(id);
   idPosition = idPosition === -1 ? undefined : idPosition;
 
   return (
@@ -22,7 +32,7 @@ export function SourceMatch({
         <File
           title="Open in VSCode"
           onClick={() =>
-            onOpen(file, line, idPosition ? idPosition + 1 : undefined)
+            onOpen?.(file, line, idPosition ? idPosition + 1 : undefined)
           }
         >
           <FileName>{file}</FileName>:{line}
@@ -55,7 +65,7 @@ export function SourceMatch({
 
 const Container = styled.div`
   border: 0.5px solid black;
-  border-color: ${({ type }) =>
+  border-color: ${({ type }: { type: keyof typeof MatchType }) =>
     type === MatchType.EXACT ? "black" : "darkseagreen"};
   font-family: monospace, monospace;
 `;
@@ -77,7 +87,13 @@ const FileName = styled.span`
   font-weight: bold;
 `;
 const Line = styled.div`
-  background-color: ${({ highlighted, type }) =>
+  background-color: ${({
+    highlighted,
+    type,
+  }: {
+    highlighted?: boolean;
+    type: keyof typeof MatchType;
+  }) =>
     highlighted
       ? type === MatchType.EXACT
         ? "lightgreen"
@@ -86,12 +102,14 @@ const Line = styled.div`
   margin: 0 8px;
 `;
 const LineNumber = styled.span`
-  color: ${({ highlighted }) => (highlighted ? "black" : "lightgrey")};
+  color: ${({ highlighted }: { highlighted?: boolean }) =>
+    highlighted ? "black" : "lightgrey"};
   margin: 0 8px;
   user-select: none;
 `;
 const LineContent = styled.pre`
   display: inline;
   margin: 0;
-  font-weight: ${({ highlighted }) => (highlighted ? "bold" : "normal")};
+  font-weight: ${({ highlighted }: { highlighted?: boolean }) =>
+    highlighted ? "bold" : "normal"};
 `;

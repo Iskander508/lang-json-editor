@@ -1,5 +1,3 @@
-import React from "react";
-import { bool, func, string } from "prop-types";
 import {
   add,
   edit,
@@ -15,7 +13,30 @@ import styled from "styled-components";
 import { Button } from "./Button";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
-function Controls({ operation, buttons, visible = true, copyString }) {
+type TOperation = {
+  name: string;
+  image: string;
+};
+
+type TButton = {
+  name: string;
+  image: string;
+  callback: () => void;
+};
+
+type TControlsProps = {
+  operation?: TOperation;
+  visible?: boolean;
+  copyString?: string;
+  buttons: Array<TButton | null | undefined>;
+};
+
+function Controls({
+  operation,
+  buttons,
+  visible = true,
+  copyString,
+}: TControlsProps) {
   const visibilityStyle = {
     opacity: visible ? 1 : 0,
   };
@@ -41,8 +62,8 @@ function Controls({ operation, buttons, visible = true, copyString }) {
         ) : null
       )}
       {copyString ? (
-        <CopyToClipboard text={copyString} title={`copy "${copyString}"`}>
-          <Button>
+        <CopyToClipboard text={copyString}>
+          <Button title={`copy "${copyString}"`}>
             <img src={copy} width="12" alt={`copy ${copyString}`} />
           </Button>
         </CopyToClipboard>
@@ -51,6 +72,15 @@ function Controls({ operation, buttons, visible = true, copyString }) {
   );
 }
 
+type TMainControlsProps = {
+  visible?: boolean;
+  onAdd?: () => void;
+  onRemove?: () => void;
+  onEdit?: () => void;
+  onSources?: () => void;
+  copyString?: string;
+};
+
 export function MainControls({
   visible,
   onAdd,
@@ -58,7 +88,7 @@ export function MainControls({
   onEdit,
   onSources,
   copyString,
-}) {
+}: TMainControlsProps) {
   return (
     <Controls
       visible={visible}
@@ -77,15 +107,17 @@ export function MainControls({
   );
 }
 
-MainControls.propTypes = {
-  visible: bool.isRequired,
-  onAdd: func,
-  onRemove: func,
-  onEdit: func,
-  copyString: string,
+type TConfirmControlsProps = {
+  editMode?: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
 };
 
-export function ConfirmControls({ onConfirm, onCancel, editMode }) {
+export function ConfirmControls({
+  onConfirm,
+  onCancel,
+  editMode,
+}: TConfirmControlsProps) {
   const name = editMode ? "edit" : "remove";
   return (
     <Controls
@@ -101,12 +133,17 @@ export function ConfirmControls({ onConfirm, onCancel, editMode }) {
   );
 }
 
-ConfirmControls.propTypes = {
-  onConfirm: func.isRequired,
-  onCancel: func.isRequired,
+type TAddControlsProps = {
+  onObject: () => void;
+  onValue: () => void;
+  onCancel: () => void;
 };
 
-export function AddControls({ onObject, onValue, onCancel }) {
+export function AddControls({
+  onObject,
+  onValue,
+  onCancel,
+}: TAddControlsProps) {
   return (
     <Controls
       operation={{
@@ -121,12 +158,6 @@ export function AddControls({ onObject, onValue, onCancel }) {
     />
   );
 }
-
-AddControls.propTypes = {
-  onObject: func.isRequired,
-  onValue: func.isRequired,
-  onCancel: func.isRequired,
-};
 
 const Container = styled.div`
   cursor: default;

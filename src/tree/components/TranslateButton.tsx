@@ -4,7 +4,17 @@ import { Button } from "./Button";
 import { TreeContext } from "../Context";
 import deepLTranslate from "deepl";
 
-export function GoogleTranslateButton({ text, fromLanguage, toLanguage }) {
+type TGoogleTranslateButtonProps = {
+  text: string;
+  fromLanguage: string;
+  toLanguage: string;
+};
+
+export function GoogleTranslateButton({
+  text,
+  fromLanguage,
+  toLanguage,
+}: TGoogleTranslateButtonProps) {
   const title = "Open on GoogleTranslate";
   return (
     <a
@@ -21,20 +31,30 @@ export function GoogleTranslateButton({ text, fromLanguage, toLanguage }) {
   );
 }
 
+type TDeepLTranslateButtonProps = {
+  text: string;
+  fromLanguage: string;
+  toLanguage: string;
+  onResult: (text: string) => void;
+};
+
 export function DeepLTranslateButton({
   text,
   fromLanguage,
   toLanguage,
   onResult,
-}) {
+}: TDeepLTranslateButtonProps) {
   const title = "Translate with DeepL";
   const [loading, setLoading] = useState(false);
   const { deepLKey } = useContext(TreeContext);
   const onClick = useCallback(() => {
+    if (!deepLKey) return;
     setLoading(true);
     deepLTranslate({
       text,
+      // @ts-ignore
       source_lang: fromLanguage.toUpperCase(),
+      // @ts-ignore
       target_lang: toLanguage.toUpperCase(),
       auth_key: deepLKey,
       free_api: deepLKey.endsWith(":fx"),

@@ -6,18 +6,21 @@ import { Problem, NO_PROBLEM } from "./tree/problem";
 import styled from "styled-components";
 import { ActionType } from "./protocol";
 import { getServerHost } from "./tree/util";
+import { TSourceMatch } from "./tree/components/SourceMatch";
 
 export default function App() {
   const serverHost = getServerHost();
 
-  const [collapseAll, setCollapseAll] = useState();
+  const [collapseAll, setCollapseAll] = useState<boolean>();
 
   const [caseSensitive, setCaseSensitive] = useState(false);
   const [filter, setFilter] = useState("");
   const [showProblemsFilter, setShowProblemsFilter] = useState(false);
-  const [filteredProblems, setFilteredProblems] = useState([]);
+  const [filteredProblems, setFilteredProblems] = useState<
+    Array<Problem | typeof NO_PROBLEM>
+  >([]);
 
-  const [sourceMatches, setSourceMatches] = useState();
+  const [sourceMatches, setSourceMatches] = useState<TSourceMatch[]>();
   const [data, setData] = useState();
   const handleIncomingMessage = useCallback((action) => {
     switch (action.action) {
@@ -60,7 +63,7 @@ export default function App() {
     [sendMessage]
   );
 
-  const onCollapseChange = useCallback(() => setCollapseAll(), []);
+  const onCollapseChange = useCallback(() => setCollapseAll(undefined), []);
 
   useEffect(() => {
     if (readyState === ReadyState.OPEN) {
@@ -73,7 +76,11 @@ export default function App() {
   const hasSources = !!sourceMatches;
   const ALL_PROBLEMS = useMemo(
     () =>
-      [NO_PROBLEM, ...Object.values(Problem)].filter(
+      (
+        [NO_PROBLEM, ...Object.values(Problem)] as Array<
+          Problem | typeof NO_PROBLEM
+        >
+      ).filter(
         (p) =>
           hasSources ||
           (p !== Problem.NO_MATCH_IN_SOURCES &&
@@ -234,7 +241,7 @@ const Content = styled.div`
 `;
 
 const ConnectionStatus = styled.span`
-  color: ${({ status }) =>
+  color: ${({ status }: { status: ReadyState }) =>
     status === ReadyState.OPEN
       ? "darkgreen"
       : status === ReadyState.CONNECTING

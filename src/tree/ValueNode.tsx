@@ -3,7 +3,7 @@ import SmoothCollapse from "react-smooth-collapse";
 import ControlsContainer from "./components/ControlsContainer";
 import styled from "styled-components";
 import { TreeContext } from "./Context";
-import { useEscapeKey } from "./util";
+import { TNode, useEscapeKey } from "./util";
 import {
   GoogleTranslateButton,
   DeepLTranslateButton,
@@ -12,6 +12,21 @@ import { Problem, extractPlaceholders } from "./problem";
 import { isEqual } from "lodash";
 import { SourceMatch } from "./components/SourceMatch";
 
+type TValueProps = {
+  language: string;
+  editing: boolean;
+  value: string;
+  onChange: (v: string) => void;
+  onEdit: (v: boolean) => void;
+  issues: Array<{
+    problem: Problem;
+    hint: string;
+  }>;
+  hintForTranslation?: {
+    language: string;
+    value: string;
+  };
+};
 function Value({
   language,
   editing,
@@ -20,10 +35,15 @@ function Value({
   onEdit,
   issues,
   hintForTranslation,
-}) {
+}: TValueProps) {
   const [autoFocus, setAutoFocus] = useState(false);
   const [focused, setFocused] = useState(false);
-  const [inputStyle, setInputStyle] = useState();
+  const [inputStyle, setInputStyle] =
+    useState<{
+      width: number;
+      height: number;
+      maxWidth: number;
+    }>();
   useEffect(() => {
     if (!editing) {
       setAutoFocus(false);
@@ -39,10 +59,10 @@ function Value({
     },
     [onChange]
   );
-  useEscapeKey(editing && cancelEdit);
+  useEscapeKey(editing ? cancelEdit : undefined);
 
   return (
-    <ValueContainer value={value}>
+    <ValueContainer>
       <LanguageTag>{language}</LanguageTag>
       {editing ? (
         <>
@@ -74,7 +94,6 @@ function Value({
         </>
       ) : (
         <ValueWrapper
-          value={value}
           problems={issues.map(({ problem }) => problem)}
           title={
             issues.length
@@ -114,7 +133,10 @@ function Value({
   );
 }
 
-export function ValueNode({ node }) {
+type TValueNodeProps = {
+  node: TNode;
+};
+export function ValueNode({ node }: TValueNodeProps) {
   const [showControls, setShowControls] = useState(false);
   const [showSources, setShowSources] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -127,7 +149,7 @@ export function ValueNode({ node }) {
     disabled,
   } = useContext(TreeContext);
 
-  useEscapeKey(showSources && (() => setShowSources(false)));
+  useEscapeKey(showSources ? () => setShowSources(false) : undefined);
 
   const onCancelEdit = useCallback(() => {
     setValues(node.values);
@@ -170,7 +192,7 @@ export function ValueNode({ node }) {
           {node.name}
         </Label>
         <ValuesContainer>
-          {languages.map((language) => {
+          {languages?.map((language) => {
             const value = values[language];
             const issues = [];
 
@@ -235,10 +257,12 @@ export function ValueNode({ node }) {
                 issues={issues}
                 value={value}
                 hintForTranslation={
-                  hintLanguage && {
-                    language: hintLanguage,
-                    value: values[hintLanguage],
-                  }
+                  hintLanguage
+                    ? {
+                        language: hintLanguage,
+                        value: values[hintLanguage],
+                      }
+                    : undefined
                 }
                 onChange={(v) => setValues({ ...values, [language]: v })}
                 onEdit={(v) => {
@@ -254,26 +278,28 @@ export function ValueNode({ node }) {
         <ControlsContainer
           visible={showControls || showSources}
           editing={editing}
-          onBeginEdit={!disabled && (() => setEditing(true))}
+          onBeginEdit={disabled ? undefined : () => setEditing(true)}
           onConfirmEdit={
-            !disabled &&
-            (() => {
-              languages.forEach((language) => {
-                const newValue = values[language];
-                const oldValue = node.values[language];
-                if (newValue !== oldValue) {
-                  onChangeValue(node.id, language, newValue);
+            disabled
+              ? undefined
+              : () => {
+                  languages?.forEach((language) => {
+                    const newValue = values[language];
+                    const oldValue = node.values[language];
+                    if (newValue !== oldValue) {
+                      onChangeValue?.(node.id, language, newValue);
+                    }
+                  });
+                  setEditing(false);
                 }
-              });
-              setEditing(false);
-            })
           }
-          onCancelEdit={!disabled && onCancelEdit}
+          onCancelEdit={disabled ? undefined : onCancelEdit}
           onRemove={
-            !disabled &&
-            (() => {
-              onRemove(node.id);
-            })
+            disabled
+              ? undefined
+              : () => {
+                  onRemove?.(node.id);
+                }
           }
           onSources={
             hasSourceMatches ? () => setShowSources((s) => !s) : undefined
@@ -304,7 +330,7 @@ const Container = styled.div`
 
 const Label = styled.div`
   cursor: default;
-  background-color: ${({ problems }) =>
+  background-color: ${({ problems }: { problems: Problem[] }) =>
     problems.includes(Problem.MISSING)
       ? "salmon"
       : problems.includes(Problem.EMPTY) || problems.includes(Problem.DEFAULT)
@@ -348,7 +374,7 @@ const ValueContainer = styled.div`
 const ValueWrapper = styled.div`
   padding: 0 8px;
   border: 0.5px solid black;
-  ${({ problems }) =>
+  ${({ problems }: { problems: Problem[] }) =>
     problems.includes(Problem.MISSING)
       ? "background-color: red; color: white; font-style: italic; font-family: sans-serif, monospace;"
       : problems.includes(Problem.EMPTY)

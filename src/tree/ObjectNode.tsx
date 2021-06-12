@@ -7,13 +7,16 @@ import { NodeType } from "../protocol";
 import { ValueNode } from "./ValueNode";
 import { confirm, cancel } from "./images";
 import { Button } from "./components/Button";
-import { useEscapeKey } from "./util";
+import { TNode, useEscapeKey } from "./util";
 import { Problem } from "./problem";
 
-export function ObjectNode({ node }) {
+type TObjectNodeProps = {
+  node: TNode;
+};
+export function ObjectNode({ node }: TObjectNodeProps) {
   const [expanded, setExpanded] = useState(!node.id);
   const [showControls, setShowControls] = useState(false);
-  const [adding, setAdding] = useState();
+  const [addingType, setAddingType] = useState<keyof typeof NodeType>();
   const [addingLabel, setAddingLabel] = useState("");
 
   const {
@@ -27,7 +30,7 @@ export function ObjectNode({ node }) {
   } = useContext(TreeContext);
 
   const stopAdding = useCallback(() => {
-    setAdding(undefined);
+    setAddingType(undefined);
     setAddingLabel("");
   }, []);
 
@@ -43,20 +46,20 @@ export function ObjectNode({ node }) {
     }
   }, [collapseAll]);
 
-  useEscapeKey(adding && stopAdding);
+  useEscapeKey(addingType && stopAdding);
 
   const problems = problematicTranslations
-    .filter(({ id }) => id === node.id || id.startsWith(`${node.id}.`))
+    ?.filter(({ id }) => id === node.id || id.startsWith(`${node.id}.`))
     .map(({ problem }) => problem);
-  const mainProblem = problems.includes(Problem.MISSING)
+  const mainProblem = problems?.includes(Problem.MISSING)
     ? Problem.MISSING
-    : problems.includes(Problem.EMPTY)
+    : problems?.includes(Problem.EMPTY)
     ? Problem.EMPTY
-    : problems.includes(Problem.NO_MATCH_IN_SOURCES)
+    : problems?.includes(Problem.NO_MATCH_IN_SOURCES)
     ? Problem.NO_MATCH_IN_SOURCES
-    : problems.includes(Problem.DEFAULT)
+    : problems?.includes(Problem.DEFAULT)
     ? Problem.DEFAULT
-    : problems.includes(Problem.SAME)
+    : problems?.includes(Problem.SAME)
     ? Problem.SAME
     : undefined;
 
@@ -65,15 +68,16 @@ export function ObjectNode({ node }) {
     /^\w+$/.test(addingLabel) &&
     !node.children.some(({ name }) => name === addingLabel);
 
-  const onConfirmAdd = addingValid
-    ? () => {
-        onAdd(node.id, adding, addingLabel);
-        stopAdding();
-      }
-    : undefined;
+  const onConfirmAdd =
+    addingValid && addingType
+      ? () => {
+          onAdd?.(node.id, addingType, addingLabel);
+          stopAdding();
+        }
+      : undefined;
 
   const onToggleCollapse = useCallback(() => {
-    onCollapseChange();
+    onCollapseChange?.();
     setExpanded((c) => !c);
   }, [onCollapseChange]);
   const onMouseEnter = useCallback(() => setShowControls(true), []);
@@ -96,12 +100,12 @@ export function ObjectNode({ node }) {
           {node.name}
         </Label>
         {expanded ? (
-          !adding &&
+          !addingType &&
           !disabled && (
             <ControlsContainer
               visible={showControls}
-              onAdd={(type) => setAdding(type)}
-              onRemove={node.id && (() => onRemove(node.id))}
+              onAdd={(type) => setAddingType(type)}
+              onRemove={node.id ? () => onRemove?.(node.id) : undefined}
             />
           )
         ) : (
@@ -110,13 +114,13 @@ export function ObjectNode({ node }) {
           }`}</Collapsed>
         )}
       </NodeContainer>
-      {adding ? (
+      {addingType ? (
         <>
           <NewItemInput
             type="text"
             autoFocus
             placeholder={
-              adding === NodeType.OBJECT ? "new section" : "new value"
+              addingType === NodeType.OBJECT ? "new section" : "new value"
             }
             onChange={(event) => setAddingLabel(event.target.value.trim())}
             onKeyPress={(e) => e.key === "Enter" && onConfirmAdd?.()}
@@ -154,7 +158,15 @@ export function ObjectNode({ node }) {
   );
 }
 
-const getLabelBackground = ({ id, problem, expanded }) => {
+const getLabelBackground = ({
+  id,
+  problem,
+  expanded,
+}: {
+  id: string;
+  problem?: Problem;
+  expanded: boolean;
+}) => {
   if (!id) return "white";
   switch (problem) {
     case Problem.MISSING:

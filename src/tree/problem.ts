@@ -1,18 +1,20 @@
+import { TSourceMatch } from "./components/SourceMatch";
 import { MatchType, NodeType } from "../protocol";
 import { isEqual } from "lodash";
+import { TNode } from "./util";
 
 export const NO_PROBLEM = "NO_PROBLEM";
-export const Problem = {
-  MISSING: "MISSING", // completely missing
-  EMPTY: "EMPTY", // only whitespaces, or empty section
-  DEFAULT: "DEFAULT", // default label used
-  SAME: "SAME", // same entry for multiple languages
-  PLACEHOLDER_MISMATCH: "PLACEHOLDER_MISMATCH", // placeholders don't match between languages
-  NO_MATCH_IN_SOURCES: "NO_MATCH_IN_SOURCES", // not found in any source file
-  PARTIAL_MATCH_IN_SOURCES: "PARTIAL_MATCH_IN_SOURCES", // only parent node found in source files
-};
+export enum Problem {
+  MISSING = "MISSING", // completely missing
+  EMPTY = "EMPTY", // only whitespaces, or empty section
+  DEFAULT = "DEFAULT", // default label used
+  SAME = "SAME", // same entry for multiple languages
+  PLACEHOLDER_MISMATCH = "PLACEHOLDER_MISMATCH", // placeholders don't match between languages
+  NO_MATCH_IN_SOURCES = "NO_MATCH_IN_SOURCES", // not found in any source file
+  PARTIAL_MATCH_IN_SOURCES = "PARTIAL_MATCH_IN_SOURCES", // only parent node found in source files
+}
 
-export function extractPlaceholders(value) {
+export function extractPlaceholders(value?: string) {
   const matches = value?.match(/{{\w+}}/g);
   if (!matches) return [];
 
@@ -21,7 +23,12 @@ export function extractPlaceholders(value) {
   ).sort();
 }
 
-function findProblemsTraverse(node, languages, sourceMatches, report) {
+function findProblemsTraverse(
+  node: TNode,
+  languages: string[],
+  sourceMatches: TSourceMatch[] | undefined,
+  report: (id: string, problem: Problem) => void
+) {
   switch (node.type) {
     case NodeType.VALUE:
       {
@@ -92,11 +99,21 @@ function findProblemsTraverse(node, languages, sourceMatches, report) {
   }
 }
 
-export function findProblems(node, languages, sourceMatches) {
-  const problems = [];
-  findProblemsTraverse(node, languages, sourceMatches, (id, problem) => {
-    if (!sourceMatches && problem === Problem.NO_MATCH_IN_SOURCES) return;
-    problems.push({ id, problem });
-  });
+export type TFindProblemsResult = Array<{ id: string; problem: Problem }>;
+export function findProblems(
+  node: TNode,
+  languages: string[],
+  sourceMatches?: TSourceMatch[]
+) {
+  const problems: TFindProblemsResult = [];
+  findProblemsTraverse(
+    node,
+    languages,
+    sourceMatches,
+    (id: string, problem: Problem) => {
+      if (!sourceMatches && problem === Problem.NO_MATCH_IN_SOURCES) return;
+      problems.push({ id, problem });
+    }
+  );
   return problems;
 }
