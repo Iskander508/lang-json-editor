@@ -1,5 +1,4 @@
-import { TNode } from "./util";
-import { NodeType } from "../protocol";
+import { NodeType, TNode } from "../protocol";
 
 function findFilteredIDsTraverse(
   node: TNode,
@@ -27,8 +26,6 @@ function findFilteredIDsTraverse(
         findFilteredIDsTraverse(n, filter, caseSensitive, report)
       );
       break;
-    default:
-      throw new Error(`Invalid type: ${node.type}`);
   }
 }
 
@@ -55,8 +52,6 @@ function findIDsTraverse(node: TNode, report: (id: string) => void) {
       }
       node.children.forEach((n) => findIDsTraverse(n, report));
       break;
-    default:
-      throw new Error(`Invalid type: ${node.type}`);
   }
 }
 

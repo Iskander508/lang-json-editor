@@ -3,7 +3,7 @@ import SmoothCollapse from "react-smooth-collapse";
 import ControlsContainer from "./components/ControlsContainer";
 import styled from "styled-components";
 import { TreeContext } from "./Context";
-import { TNode, useEscapeKey } from "./util";
+import { useEscapeKey } from "./util";
 import {
   GoogleTranslateButton,
   DeepLTranslateButton,
@@ -11,6 +11,7 @@ import {
 import { Problem, extractPlaceholders } from "./problem";
 import { isEqual } from "lodash";
 import { SourceMatch } from "./components/SourceMatch";
+import { TValueNode } from "../protocol";
 
 type TValueProps = {
   language: string;
@@ -134,7 +135,7 @@ function Value({
 }
 
 type TValueNodeProps = {
-  node: TNode;
+  node: TValueNode;
 };
 export function ValueNode({ node }: TValueNodeProps) {
   const [showControls, setShowControls] = useState(false);

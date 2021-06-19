@@ -1,7 +1,5 @@
-import { TSourceMatch } from "./components/SourceMatch";
-import { MatchType, NodeType } from "../protocol";
+import { MatchType, NodeType, TNode, TSourceMatch } from "../protocol";
 import { isEqual } from "lodash";
-import { TNode } from "./util";
 
 export const NO_PROBLEM = "NO_PROBLEM";
 export enum Problem {
@@ -94,8 +92,6 @@ function findProblemsTraverse(
         findProblemsTraverse(n, languages, sourceMatches, report)
       );
       break;
-    default:
-      throw new Error(`Invalid type: ${node.type}`);
   }
 }
 

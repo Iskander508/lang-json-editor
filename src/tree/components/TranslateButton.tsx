@@ -1,8 +1,8 @@
-import React, { useCallback, useContext, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { googleTranslate, deepl } from "../images";
 import { Button } from "./Button";
-import { TreeContext } from "../Context";
 import deepLTranslate from "deepl";
+import { getUrlParams } from "../util";
 
 type TGoogleTranslateButtonProps = {
   text: string;
@@ -31,6 +31,8 @@ export function GoogleTranslateButton({
   );
 }
 
+const { deepLKey } = getUrlParams();
+
 type TDeepLTranslateButtonProps = {
   text: string;
   fromLanguage: string;
@@ -46,7 +48,6 @@ export function DeepLTranslateButton({
 }: TDeepLTranslateButtonProps) {
   const title = "Translate with DeepL";
   const [loading, setLoading] = useState(false);
-  const { deepLKey } = useContext(TreeContext);
   const onClick = useCallback(() => {
     if (!deepLKey) return;
     setLoading(true);
@@ -62,7 +63,7 @@ export function DeepLTranslateButton({
       .then((result) => onResult(result.data.translations[0].text))
       .catch((error) => console.error(error))
       .finally(() => setLoading(false));
-  }, [deepLKey, text, fromLanguage, toLanguage, onResult]);
+  }, [text, fromLanguage, toLanguage, onResult]);
 
   return !deepLKey ? null : (
     <Button title={title} onClick={onClick} loading={loading}>

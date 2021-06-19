@@ -1,17 +1,7 @@
-import React, { useContext } from "react";
+import React from "react";
 import styled from "styled-components";
-import { MatchType } from "../../protocol";
-import { TreeContext } from "../Context";
+import { MatchType, TSourceMatch } from "../../protocol";
 import { vscode } from "../images";
-
-export interface TSourceMatch {
-  id: string;
-  file: string;
-  line: number;
-  contextStartLine: number;
-  context: string[];
-  type: keyof typeof MatchType;
-}
 
 export function SourceMatch({
   id,
@@ -21,7 +11,6 @@ export function SourceMatch({
   context,
   type,
 }: TSourceMatch) {
-  const { onOpen } = useContext(TreeContext);
   let idPosition: number | undefined =
     context[line - contextStartLine]?.indexOf(id);
   idPosition = idPosition === -1 ? undefined : idPosition;
@@ -29,12 +18,7 @@ export function SourceMatch({
   return (
     <Container type={type}>
       <Header>
-        <File
-          title="Open in VSCode"
-          onClick={() =>
-            onOpen?.(file, line, idPosition ? idPosition + 1 : undefined)
-          }
-        >
+        <File title="Open in VSCode">
           <FileName>{file}</FileName>:{line}
         </File>
       </Header>
@@ -65,7 +49,7 @@ export function SourceMatch({
 
 const Container = styled.div`
   border: 0.5px solid black;
-  border-color: ${({ type }: { type: keyof typeof MatchType }) =>
+  border-color: ${({ type }: { type: MatchType }) =>
     type === MatchType.EXACT ? "black" : "darkseagreen"};
   font-family: monospace, monospace;
 `;
@@ -92,7 +76,7 @@ const Line = styled.div`
     type,
   }: {
     highlighted?: boolean;
-    type: keyof typeof MatchType;
+    type: MatchType;
   }) =>
     highlighted
       ? type === MatchType.EXACT

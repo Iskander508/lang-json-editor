@@ -12,7 +12,7 @@ export enum ConfirmationModes {
 type TControlsContainerProps = {
   editing?: boolean;
   visible?: boolean;
-  onAdd?: (type: keyof typeof NodeType) => void;
+  onAdd?: (type: NodeType) => void;
   onRemove?: () => void;
   onConfirmEdit?: () => void;
   onCancelEdit?: () => void;

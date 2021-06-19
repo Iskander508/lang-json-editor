@@ -3,20 +3,20 @@ import SmoothCollapse from "react-smooth-collapse";
 import ControlsContainer from "./components/ControlsContainer";
 import styled from "styled-components";
 import { TreeContext } from "./Context";
-import { NodeType } from "../protocol";
+import { NodeType, TObjectNode } from "../protocol";
 import { ValueNode } from "./ValueNode";
 import { confirm, cancel } from "./images";
 import { Button } from "./components/Button";
-import { TNode, useEscapeKey } from "./util";
+import { useEscapeKey } from "./util";
 import { Problem } from "./problem";
 
 type TObjectNodeProps = {
-  node: TNode;
+  node: TObjectNode;
 };
 export function ObjectNode({ node }: TObjectNodeProps) {
   const [expanded, setExpanded] = useState(!node.id);
   const [showControls, setShowControls] = useState(false);
-  const [addingType, setAddingType] = useState<keyof typeof NodeType>();
+  const [addingType, setAddingType] = useState<NodeType>();
   const [addingLabel, setAddingLabel] = useState("");
 
   const {

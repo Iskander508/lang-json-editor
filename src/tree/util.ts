@@ -1,20 +1,4 @@
-import { TSourceMatch } from "./components/SourceMatch";
 import { useEffect } from "react";
-import { NodeType } from "../protocol";
-
-export interface TNodeValues {
-  [language: string]: string;
-}
-
-export type TNode = {
-  id: string;
-  name: string;
-  type: keyof typeof NodeType;
-  exactSourceMatches: TSourceMatch[];
-  partialSourceMatches: TSourceMatch[];
-  values: TNodeValues;
-  children: TNode[];
-};
 
 export const useEscapeKey = (onEscape?: () => void) => {
   useEffect(() => {
@@ -30,8 +14,15 @@ export const useEscapeKey = (onEscape?: () => void) => {
   }, [onEscape]);
 };
 
-export const getServerHost = () => {
+export const getUrlParams = () => {
   const url = new URL(window.location.href);
-  const serverPort = url.searchParams.get("serverPort") || url.port;
-  return `${url.hostname}:${serverPort}`;
+  const deepLKey = url.searchParams.get("deepLKey") || undefined;
+  const sessionId = url.searchParams.get("sessionId") || undefined;
+  return { deepLKey, sessionId };
+};
+
+export const setUrlParam = (name: string, value: string) => {
+  const url = new URL(window.location.href);
+  url.searchParams.set(name, value);
+  window.history.pushState({}, "", url.href);
 };

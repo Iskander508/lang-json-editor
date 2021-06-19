@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Action } from "../protocol";
+import { NodeType, TObjectNode, TSourceMatch } from "../protocol";
 import {
   findProblems,
   NO_PROBLEM,
@@ -9,8 +9,6 @@ import {
 import { findIDs, findFilteredIDs } from "./filter";
 import { TreeContext } from "./Context";
 import { ObjectNode } from "./ObjectNode";
-import { TSourceMatch } from "./components/SourceMatch";
-import { TNode } from "./util";
 
 type TProblemsFilter = Array<Problem | typeof NO_PROBLEM>;
 type TFilter = {
@@ -18,16 +16,15 @@ type TFilter = {
   caseSensitive: boolean;
   problems: TProblemsFilter;
 };
-type TreeData = {
-  content: TNode;
-  languages?: string[];
-  deepLKey?: string;
-};
+
 type TreeProps = {
-  data?: TreeData;
+  data: TObjectNode;
+  languages?: string[];
   sourceMatches?: TSourceMatch[];
   filter: TFilter;
-  onSendMessage: (message: object) => void;
+  onAdd?: (id: string, type: NodeType, label: string) => void;
+  onChangeValue?: (id: string, language: string, value: string) => void;
+  onRemove?: (id: string) => void;
   disabled?: boolean;
   collapseAll?: boolean;
   onCollapseChange: () => void;
@@ -35,9 +32,12 @@ type TreeProps = {
 
 export default function Tree({
   data,
+  languages,
   sourceMatches,
   filter: { text: textFilter, caseSensitive, problems: problemsFilter },
-  onSendMessage,
+  onAdd,
+  onChangeValue,
+  onRemove,
   disabled,
   collapseAll,
   onCollapseChange,
@@ -45,19 +45,15 @@ export default function Tree({
   const [problematicTranslations, setProblematicTranslations] =
     useState<TFindProblemsResult>([]);
   useEffect(() => {
-    if (data?.languages?.length) {
-      setProblematicTranslations(
-        findProblems(data.content, data.languages, sourceMatches)
-      );
+    if (languages?.length) {
+      setProblematicTranslations(findProblems(data, languages, sourceMatches));
     }
-  }, [sourceMatches, data]);
+  }, [sourceMatches, data, languages]);
 
   const [textFilteredIds, setTextFilteredIds] = useState<string[]>();
   useEffect(() => {
     if (data && textFilter) {
-      setTextFilteredIds(
-        findFilteredIDs(data.content, textFilter, caseSensitive)
-      );
+      setTextFilteredIds(findFilteredIDs(data, textFilter, caseSensitive));
     } else {
       setTextFilteredIds(undefined);
     }
@@ -65,7 +61,7 @@ export default function Tree({
 
   let filteredIds = textFilteredIds;
   if (data && problemsFilter?.length) {
-    const IDs = textFilteredIds || findIDs(data.content);
+    const IDs = textFilteredIds || findIDs(data);
 
     const problemIdMap = problematicTranslations.reduce<{
       [id: string]: Problem[];
@@ -93,17 +89,13 @@ export default function Tree({
         disabled,
         filteredIds,
         problematicTranslations,
-        languages: data?.languages,
-        deepLKey: data?.deepLKey,
-        onAdd: (id, type, label) => onSendMessage(Action.add(id, type, label)),
-        onChangeValue: (id, language, value) =>
-          onSendMessage(Action.changeValue(id, language, value)),
-        onRemove: (id) => onSendMessage(Action.remove(id)),
-        onOpen: (file, line, column) =>
-          onSendMessage(Action.open(file, line, column)),
+        languages: languages,
+        onAdd,
+        onChangeValue,
+        onRemove,
       }}
     >
-      {data ? <ObjectNode node={data.content} /> : null}
+      {data ? <ObjectNode node={data} /> : null}
     </TreeContext.Provider>
   );
 }

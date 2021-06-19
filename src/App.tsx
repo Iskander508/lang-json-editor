@@ -1,124 +1,63 @@
 import Footer from "./Footer";
-import useWebSocket, { ReadyState } from "react-use-websocket";
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useCallback, useState } from "react";
 import Tree from "./tree/Tree";
 import { Problem, NO_PROBLEM } from "./tree/problem";
 import styled from "styled-components";
-import { ActionType } from "./protocol";
-import { getServerHost } from "./tree/util";
-import { TSourceMatch } from "./tree/components/SourceMatch";
-import Parse from "parse";
-import { initializeParse, useParseQuery } from "@parse/react";
+import { useParse } from "./parse";
 
-initializeParse(
-  "https://translation.b4a.io/",
-  "ZqSPDyNGkCzQYoQfxgGEUgpO4tp9Rc7z4DhJQNWI",
-  "6aZHlL6cm2kX99WmKTATP7rZUCGvPmNNpFF76EqM"
+const ALL_PROBLEMS = (
+  [NO_PROBLEM, ...Object.values(Problem)] as Array<Problem | typeof NO_PROBLEM>
+).filter(
+  (p) =>
+    p !== Problem.NO_MATCH_IN_SOURCES && p !== Problem.PARTIAL_MATCH_IN_SOURCES
 );
 
 export default function App() {
-  const languages = useParseQuery(
-    new Parse.Query("Language"), // The Parse Query to be used
-    {
-      enableLocalDatastore: true,
-      enableLiveQuery: false,
-    }
-  );
-  const translations = useParseQuery(
-    new Parse.Query("Translation").equalTo("objectId", "owp5Fexxtk"), // The Parse Query to be used
-    {
-      enableLocalDatastore: true,
-      enableLiveQuery: true,
-    }
-  );
-  console.log(languages, translations);
-
-  const serverHost = getServerHost();
+  const { data, supportedLanguages, onAdd, onChangeValue, onRemove } =
+    useParse();
 
   const [collapseAll, setCollapseAll] = useState<boolean>();
 
   const [caseSensitive, setCaseSensitive] = useState(false);
   const [filter, setFilter] = useState("");
-  const [showProblemsFilter, setShowProblemsFilter] = useState(false);
+  const [languages, setLanguages] = useState<string[]>([]);
+  const [showLanguageSelection, setShowLanguageSelection] = useState(false);
+  const [showProblemsSelection, setShowProblemsSelection] = useState(false);
   const [filteredProblems, setFilteredProblems] = useState<
     Array<Problem | typeof NO_PROBLEM>
   >([]);
 
-  const [sourceMatches, setSourceMatches] = useState<TSourceMatch[]>();
-  const [data, setData] = useState();
-  const handleIncomingMessage = useCallback((action) => {
-    switch (action.action) {
-      case ActionType.DATA_UPDATE:
-        setData(action.data);
-        break;
-      case ActionType.SOURCE_MATCHES_UPDATE:
-        setSourceMatches(action.data);
-        break;
-      default:
-        console.error("Invalid action:", action.action);
-        break;
-    }
-  }, []);
-
-  const { sendMessage, readyState } = useWebSocket(`ws://${serverHost}`, {
-    retryOnError: true,
-    shouldReconnect: () => true,
-    reconnectAttempts: 100,
-    onMessage: (ev) => handleIncomingMessage(JSON.parse(ev.data)),
-  });
-
-  const getStatusLabel = useCallback(() => {
-    switch (readyState) {
-      case ReadyState.OPEN:
-        return "Connected";
-      case ReadyState.CONNECTING:
-        return "Connecting";
-      case ReadyState.CLOSED:
-        return "Server not reachable";
-      default:
-        return "Unknown";
-    }
-  }, [readyState]);
-
-  const onSendMessage = useCallback(
-    (message) => {
-      sendMessage(JSON.stringify(message));
-    },
-    [sendMessage]
-  );
-
   const onCollapseChange = useCallback(() => setCollapseAll(undefined), []);
-
-  useEffect(() => {
-    if (readyState === ReadyState.OPEN) {
-      fetch(`http://${serverHost}/data`)
-        .then((response) => response.json())
-        .then(setData);
-    }
-  }, [readyState, serverHost]);
-
-  const hasSources = !!sourceMatches;
-  const ALL_PROBLEMS = useMemo(
-    () =>
-      (
-        [NO_PROBLEM, ...Object.values(Problem)] as Array<
-          Problem | typeof NO_PROBLEM
-        >
-      ).filter(
-        (p) =>
-          hasSources ||
-          (p !== Problem.NO_MATCH_IN_SOURCES &&
-            p !== Problem.PARTIAL_MATCH_IN_SOURCES)
-      ),
-    [hasSources]
-  );
 
   return (
     <AppContainer>
       <TopBar>
-        <ConnectionStatus status={readyState}>
-          {getStatusLabel()}
-        </ConnectionStatus>
+        <SelectionWrapper>
+          <button onClick={() => setShowLanguageSelection((s) => !s)}>
+            Languages
+          </button>
+          {showLanguageSelection && (
+            <Selection>
+              {supportedLanguages.map((v) => (
+                <span key={v}>
+                  <input
+                    type="checkbox"
+                    name={v}
+                    checked={languages.includes(v)}
+                    onChange={(event) =>
+                      setLanguages((prev) =>
+                        event.target.checked
+                          ? [...prev, v]
+                          : prev.filter((x) => x !== v)
+                      )
+                    }
+                  />
+                  {v}
+                </span>
+              ))}
+            </Selection>
+          )}
+        </SelectionWrapper>
         <Collapse>
           <span>
             <button
@@ -150,12 +89,12 @@ export default function App() {
               onChange={(event) => setCaseSensitive(event.target.checked)}
             />
             case sensitive
-            <ProblemsFilterWrapper>
-              <button onClick={() => setShowProblemsFilter((s) => !s)}>
+            <SelectionWrapper>
+              <button onClick={() => setShowProblemsSelection((s) => !s)}>
                 Problems
               </button>
-              {showProblemsFilter && (
-                <ProblemsFilter>
+              {showProblemsSelection && (
+                <Selection>
                   {ALL_PROBLEMS.map((v) => (
                     <span key={v}>
                       <input
@@ -173,23 +112,27 @@ export default function App() {
                       {v}
                     </span>
                   ))}
-                </ProblemsFilter>
+                </Selection>
               )}
-            </ProblemsFilterWrapper>
+            </SelectionWrapper>
           </span>
         </Filter>
       </TopBar>
       <Content>
-        {!data && "No data"}
-        <Tree
-          data={data}
-          sourceMatches={sourceMatches}
-          collapseAll={collapseAll}
-          onCollapseChange={onCollapseChange}
-          filter={{ text: filter, caseSensitive, problems: filteredProblems }}
-          onSendMessage={onSendMessage}
-          disabled={readyState !== ReadyState.OPEN}
-        />
+        {!data ? (
+          "No data"
+        ) : (
+          <Tree
+            data={data}
+            languages={languages}
+            collapseAll={collapseAll}
+            onCollapseChange={onCollapseChange}
+            filter={{ text: filter, caseSensitive, problems: filteredProblems }}
+            onAdd={onAdd}
+            onChangeValue={onChangeValue}
+            onRemove={onRemove}
+          />
+        )}
       </Content>
 
       <Footer />
@@ -232,7 +175,7 @@ const Filter = styled.div`
   justify-content: space-around;
 `;
 
-const ProblemsFilterWrapper = styled.div`
+const SelectionWrapper = styled.div`
   position: relative;
 `;
 
@@ -244,7 +187,7 @@ const FilterInput = styled.input`
   min-width: min(50vw, 400px);
 `;
 
-const ProblemsFilter = styled.div`
+const Selection = styled.div`
   position: absolute;
   background-color: #ffffff;
   border: 0.5px solid black;
@@ -262,13 +205,4 @@ const Content = styled.div`
   padding-top: 15px;
   flex-direction: column;
   align-items: center;
-`;
-
-const ConnectionStatus = styled.span`
-  color: ${({ status }: { status: ReadyState }) =>
-    status === ReadyState.OPEN
-      ? "darkgreen"
-      : status === ReadyState.CONNECTING
-      ? "black"
-      : "darkred"};
 `;
