@@ -7,8 +7,32 @@ import styled from "styled-components";
 import { ActionType } from "./protocol";
 import { getServerHost } from "./tree/util";
 import { TSourceMatch } from "./tree/components/SourceMatch";
+import Parse from "parse";
+import { initializeParse, useParseQuery } from "@parse/react";
+
+initializeParse(
+  "https://translation.b4a.io/",
+  "ZqSPDyNGkCzQYoQfxgGEUgpO4tp9Rc7z4DhJQNWI",
+  "6aZHlL6cm2kX99WmKTATP7rZUCGvPmNNpFF76EqM"
+);
 
 export default function App() {
+  const languages = useParseQuery(
+    new Parse.Query("Language"), // The Parse Query to be used
+    {
+      enableLocalDatastore: true,
+      enableLiveQuery: false,
+    }
+  );
+  const translations = useParseQuery(
+    new Parse.Query("Translation").equalTo("objectId", "owp5Fexxtk"), // The Parse Query to be used
+    {
+      enableLocalDatastore: true,
+      enableLiveQuery: true,
+    }
+  );
+  console.log(languages, translations);
+
   const serverHost = getServerHost();
 
   const [collapseAll, setCollapseAll] = useState<boolean>();

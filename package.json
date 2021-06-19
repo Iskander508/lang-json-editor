@@ -1,35 +1,31 @@
 {
   "name": "lang_json_editor",
-  "version": "0.5.1",
-  "bin": "./cli.js",
+  "version": "0.0.1",
   "dependencies": {
-    "express": "^4.17.1",
-    "glob": "^7.1.6",
+    "@parse/react": "^0.0.1-alpha.14",
+    "deepl": "^1.0.9",
     "lodash": "^4.17.21",
-    "open": "^8.0.2",
-    "open-in-editor": "^2.2.0",
-    "ws": "^7.4.4",
-    "yargs": "^16.2.0"
+    "parse": "^3.2.0",
+    "react": "^17.0.1",
+    "react-copy-to-clipboard": "^5.0.3",
+    "react-dom": "^17.0.1",
+    "react-smooth-collapse": "^2.1.0",
+    "react-use-websocket": "^2.5.0",
+    "styled-components": "^5.2.1"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.170",
+    "@types/parse": "^2.18.6",
     "@types/react": "^17.0.11",
     "@types/react-copy-to-clipboard": "^5.0.0",
     "@types/react-dom": "^17.0.7",
     "@types/styled-components": "^5.1.10",
-    "deepl": "^1.0.9",
-    "react": "^17.0.1",
-    "react-copy-to-clipboard": "^5.0.3",
-    "react-dom": "^17.0.1",
     "react-scripts": "4.0.1",
-    "react-smooth-collapse": "^2.1.0",
-    "react-use-websocket": "^2.5.0",
-    "styled-components": "^5.2.1",
     "typescript": "^4.3.2"
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build && rm -rf web && mv build web"
+    "build": "react-scripts build && rm -rf docs && mv build docs"
   },
   "eslintConfig": {
     "extends": [
@@ -47,5 +43,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "homepage": "."
 }
