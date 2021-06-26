@@ -1,5 +1,6 @@
 import { cloneDeep } from "lodash";
 import { NodeType, TObjectNode } from "./protocol";
+import { getUrlParams } from "./tree/util";
 
 export function add(
   node: TObjectNode,
@@ -14,10 +15,19 @@ export function add(
       id: parentId ? `${parentId}.${label}` : label,
       name: label,
     };
+
+    const values: Record<string, string> = {};
+    if (type === NodeType.VALUE) {
+      const { languages } = getUrlParams();
+      languages.forEach((l) => {
+        values[l] = item.id;
+      });
+    }
+
     result.children.push(
       type === NodeType.OBJECT
         ? { ...item, type, children: [] }
-        : { ...item, type, values: {} }
+        : { ...item, type, values }
     );
 
     return result;

@@ -18,11 +18,17 @@ export const getUrlParams = () => {
   const url = new URL(window.location.href);
   const deepLKey = url.searchParams.get("deepLKey") || undefined;
   const sessionId = url.searchParams.get("sessionId") || undefined;
-  return { deepLKey, sessionId };
+  const languages = url.searchParams.getAll("language");
+  return { deepLKey, sessionId, languages };
 };
 
-export const setUrlParam = (name: string, value: string) => {
+export const setUrlParam = (name: string, value: string | string[]) => {
   const url = new URL(window.location.href);
-  url.searchParams.set(name, value);
+  if (typeof value === "string") {
+    url.searchParams.set(name, value);
+  } else {
+    url.searchParams.delete(name);
+    value.forEach((v) => url.searchParams.append(name, v));
+  }
   window.history.pushState({}, "", url.href);
 };

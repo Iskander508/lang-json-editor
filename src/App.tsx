@@ -4,6 +4,7 @@ import Tree from "./tree/Tree";
 import { Problem, NO_PROBLEM } from "./tree/problem";
 import styled from "styled-components";
 import { useParse } from "./parse";
+import { getUrlParams, setUrlParam } from "./tree/util";
 
 const ALL_PROBLEMS = (
   [NO_PROBLEM, ...Object.values(Problem)] as Array<Problem | typeof NO_PROBLEM>
@@ -20,7 +21,9 @@ export default function App() {
 
   const [caseSensitive, setCaseSensitive] = useState(false);
   const [filter, setFilter] = useState("");
-  const [languages, setLanguages] = useState<string[]>([]);
+  const [languages, setLanguages] = useState<string[]>(
+    getUrlParams().languages
+  );
   const [showLanguageSelection, setShowLanguageSelection] = useState(false);
   const [showProblemsSelection, setShowProblemsSelection] = useState(false);
   const [filteredProblems, setFilteredProblems] = useState<
@@ -28,6 +31,16 @@ export default function App() {
   >([]);
 
   const onCollapseChange = useCallback(() => setCollapseAll(undefined), []);
+  const updateLanguage = useCallback(
+    (lang: string, enabled: boolean) => {
+      const updated = enabled
+        ? [...languages, lang]
+        : languages.filter((x) => x !== lang);
+      setLanguages(updated);
+      setUrlParam("language", updated);
+    },
+    [languages]
+  );
 
   return (
     <AppContainer>
@@ -45,11 +58,7 @@ export default function App() {
                     name={v}
                     checked={languages.includes(v)}
                     onChange={(event) =>
-                      setLanguages((prev) =>
-                        event.target.checked
-                          ? [...prev, v]
-                          : prev.filter((x) => x !== v)
-                      )
+                      updateLanguage(v, event.target.checked)
                     }
                   />
                   {v}
