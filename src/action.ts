@@ -1,5 +1,5 @@
 import { cloneDeep } from "lodash";
-import { NodeType, TObjectNode } from "./protocol";
+import { JsonData, NodeType, TObjectNode } from "./protocol";
 import { getUrlParams } from "./tree/util";
 
 export function add(
@@ -99,6 +99,53 @@ export function remove(
   } else {
     result.children = result.children.filter(({ name }) => name !== first);
   }
+
+  return result;
+}
+
+export function importJson(
+  node: TObjectNode,
+  data: JsonData,
+  language: string,
+  traversed?: boolean
+): TObjectNode {
+  const result = traversed ? node : cloneDeep(node);
+
+  Object.keys(data).forEach((key) => {
+    const value = data[key];
+    const type = typeof value === "string" ? NodeType.VALUE : NodeType.OBJECT;
+    const current = result.children.find(({ name }) => name === key);
+
+    if (type === NodeType.OBJECT && !value) return;
+    if (current && current.type !== type) {
+      throw new Error(
+        `Mismatch types: ${current.id}: current=${current.type}, imported=${type}`
+      );
+    }
+
+    if (current) {
+      if (current.type === NodeType.VALUE) {
+        current.values[language] = value as string;
+      } else {
+        importJson(current, value as JsonData, language, true);
+      }
+    } else {
+      const id = result.id ? `${result.id}.${key}` : key;
+      if (type === NodeType.VALUE) {
+        const values: Record<string, string> = {};
+        const { languages } = getUrlParams();
+        languages.forEach((l) => {
+          values[l] = id;
+        });
+        values[language] = value as string;
+        result.children.push({ id, name: key, type, values });
+      } else {
+        const newNode: TObjectNode = { id, name: key, type, children: [] };
+        importJson(newNode, value as JsonData, language, true);
+        result.children.push(newNode);
+      }
+    }
+  });
 
   return result;
 }

@@ -1,93 +1,49 @@
 import Footer from "./Footer";
 import { useCallback, useState } from "react";
 import Tree from "./tree/Tree";
-import { Problem, NO_PROBLEM } from "./tree/problem";
 import styled from "styled-components";
 import { useParse } from "./parse";
-import { getUrlParams, setUrlParam } from "./tree/util";
-
-const ALL_PROBLEMS = (
-  [NO_PROBLEM, ...Object.values(Problem)] as Array<Problem | typeof NO_PROBLEM>
-).filter(
-  (p) =>
-    p !== Problem.NO_MATCH_IN_SOURCES && p !== Problem.PARTIAL_MATCH_IN_SOURCES
-);
+import LanguagesSelection from "./LanguagesSelection";
+import TreeCollapse from "./TreeCollapse";
+import ProblemsSelection, { SelectedProblem } from "./ProblemsSelection";
+import Import from "./Import";
 
 export default function App() {
-  const { data, supportedLanguages, onAdd, onChangeValue, onRemove } =
-    useParse();
+  const {
+    data,
+    supportedLanguages,
+    onAdd,
+    onChangeValue,
+    onRemove,
+    onImportJson,
+  } = useParse();
+
+  const [languages, setLanguages] = useState<string[]>([]);
 
   const [collapseAll, setCollapseAll] = useState<boolean>();
+  const onCollapseChange = useCallback(() => setCollapseAll(undefined), []);
 
   const [caseSensitive, setCaseSensitive] = useState(false);
   const [filter, setFilter] = useState("");
-  const [languages, setLanguages] = useState<string[]>(
-    getUrlParams().languages
-  );
-  const [showLanguageSelection, setShowLanguageSelection] = useState(false);
-  const [showProblemsSelection, setShowProblemsSelection] = useState(false);
   const [filteredProblems, setFilteredProblems] = useState<
-    Array<Problem | typeof NO_PROBLEM>
+    Array<SelectedProblem>
   >([]);
-
-  const onCollapseChange = useCallback(() => setCollapseAll(undefined), []);
-  const updateLanguage = useCallback(
-    (lang: string, enabled: boolean) => {
-      const updated = enabled
-        ? [...languages, lang]
-        : languages.filter((x) => x !== lang);
-      setLanguages(updated);
-      setUrlParam("language", updated);
-    },
-    [languages]
-  );
 
   return (
     <AppContainer>
       <TopBar>
-        <SelectionWrapper>
-          <button onClick={() => setShowLanguageSelection((s) => !s)}>
-            Languages
-          </button>
-          {showLanguageSelection && (
-            <Selection>
-              {supportedLanguages.map((v) => (
-                <span key={v}>
-                  <input
-                    type="checkbox"
-                    name={v}
-                    checked={languages.includes(v)}
-                    onChange={(event) =>
-                      updateLanguage(v, event.target.checked)
-                    }
-                  />
-                  {v}
-                </span>
-              ))}
-            </Selection>
-          )}
-        </SelectionWrapper>
-        <Collapse>
-          <span>
-            <button
-              disabled={collapseAll === false}
-              onClick={() => setCollapseAll(false)}
-              title="Expand All"
-            >
-              +
-            </button>
-            <button
-              disabled={collapseAll}
-              onClick={() => setCollapseAll(true)}
-              title="Collapse All"
-            >
-              -
-            </button>
-          </span>
-        </Collapse>
+        <LanguagesSelection
+          supportedLanguages={supportedLanguages}
+          onSelectionChange={setLanguages}
+        />
+        <TreeCollapse
+          collapseAll={collapseAll}
+          onCollapseAll={setCollapseAll}
+        />
+        {onImportJson && <Import onImport={onImportJson} />}
         <Filter>
           <span>
-            Filter:
+            <NonSelectable>Filter:</NonSelectable>
             <FilterInput
               onChange={(event) => setFilter(event.target.value.trim())}
             />
@@ -97,33 +53,13 @@ export default function App() {
               checked={caseSensitive}
               onChange={(event) => setCaseSensitive(event.target.checked)}
             />
-            case sensitive
-            <SelectionWrapper>
-              <button onClick={() => setShowProblemsSelection((s) => !s)}>
-                Problems
-              </button>
-              {showProblemsSelection && (
-                <Selection>
-                  {ALL_PROBLEMS.map((v) => (
-                    <span key={v}>
-                      <input
-                        type="checkbox"
-                        name={v}
-                        checked={filteredProblems.includes(v)}
-                        onChange={(event) =>
-                          setFilteredProblems((prev) =>
-                            event.target.checked
-                              ? [...prev, v]
-                              : prev.filter((x) => x !== v)
-                          )
-                        }
-                      />
-                      {v}
-                    </span>
-                  ))}
-                </Selection>
-              )}
-            </SelectionWrapper>
+            <NonSelectable onClick={() => setCaseSensitive((x) => !x)}>
+              case sensitive
+            </NonSelectable>
+            <ProblemsSelection
+              filteredProblems={filteredProblems}
+              onChange={setFilteredProblems}
+            />
           </span>
         </Filter>
       </TopBar>
@@ -172,20 +108,10 @@ const TopBar = styled.div`
   padding-right: 1em;
 `;
 
-const Collapse = styled.div`
-  flex: 1;
-  display: flex;
-  justify-content: space-around;
-`;
-
 const Filter = styled.div`
   flex: 3;
   display: flex;
   justify-content: space-around;
-`;
-
-const SelectionWrapper = styled.div`
-  position: relative;
 `;
 
 const FilterInput = styled.input`
@@ -196,16 +122,6 @@ const FilterInput = styled.input`
   min-width: min(50vw, 400px);
 `;
 
-const Selection = styled.div`
-  position: absolute;
-  background-color: #ffffff;
-  border: 0.5px solid black;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  z-index: 1;
-`;
-
 const Content = styled.div`
   flex: 1;
   min-width: 800px;
@@ -214,4 +130,13 @@ const Content = styled.div`
   padding-top: 15px;
   flex-direction: column;
   align-items: center;
+`;
+
+const NonSelectable = styled.span`
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 `;

@@ -47,3 +47,6 @@ export type TValueNode = {
 };
 
 export type TNode = TObjectNode | TValueNode;
+
+type JsonDataValue = string | JsonData;
+export interface JsonData extends Record<string, JsonDataValue> {}

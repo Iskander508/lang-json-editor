@@ -1,9 +1,9 @@
-import { NodeType, TObjectNode } from "./protocol";
+import { JsonData, NodeType, TObjectNode } from "./protocol";
 import { getUrlParams, setUrlParam } from "./tree/util";
 import Parse from "parse";
 import { initializeParse, useParseQuery } from "@parse/react";
 import { useEffect, useMemo, useState } from "react";
-import { add, changeValue, remove } from "./action";
+import { add, changeValue, importJson, remove } from "./action";
 
 initializeParse(
   "https://translation.b4a.io/",
@@ -27,6 +27,7 @@ type UseParseResult = {
   onAdd?: (id: string, type: NodeType, label: string) => void;
   onChangeValue?: (id: string, language: string, value: string) => void;
   onRemove?: (id: string) => void;
+  onImportJson?: (language: string, json: JsonData) => void;
 };
 
 export function useParse(): UseParseResult {
@@ -91,5 +92,9 @@ export function useParse(): UseParseResult {
       ((id: string, language: string, value: string) =>
         applyModification(changeValue(data, id, language, value))),
     onRemove: data && ((id: string) => applyModification(remove(data, id))),
+    onImportJson:
+      data &&
+      ((language: string, json: JsonData) =>
+        applyModification(importJson(data, json, language))),
   };
 }
