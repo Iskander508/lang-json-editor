@@ -7,6 +7,7 @@ import LanguagesSelection from "./LanguagesSelection";
 import TreeCollapse from "./TreeCollapse";
 import ProblemsSelection, { SelectedProblem } from "./ProblemsSelection";
 import Import from "./Import";
+import Export from "./Export";
 
 export default function App() {
   const {
@@ -41,6 +42,7 @@ export default function App() {
           onCollapseAll={setCollapseAll}
         />
         {onImportJson && <Import onImport={onImportJson} />}
+        {data && <Export data={data} />}
         <Filter>
           <span>
             <NonSelectable>Filter:</NonSelectable>

@@ -149,3 +149,19 @@ export function importJson(
 
   return result;
 }
+
+export function exportJson(node: TObjectNode, language: string): JsonData {
+  const result: JsonData = {};
+
+  node.children.forEach((item) => {
+    if (item.type === NodeType.VALUE) {
+      if (language in item.values) {
+        result[item.name] = item.values[language];
+      }
+    } else {
+      result[item.name] = exportJson(item, language);
+    }
+  });
+
+  return result;
+}
