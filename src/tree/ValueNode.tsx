@@ -157,6 +157,16 @@ export function ValueNode({ node }: TValueNodeProps) {
     }
   }, [disabled, onCancelEdit]);
 
+  useEffect(
+    () => {
+      if (!editing) {
+        setValues(node.values);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [node.values]
+  );
+
   const problems =
     problematicTranslations
       ?.filter(({ id }) => id === node.id)
