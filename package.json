@@ -1,6 +1,6 @@
 {
   "name": "lang_json_editor",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "dependencies": {
     "@parse/react": "^0.0.1-alpha.14",
     "deepl": "^1.0.9",
