@@ -11,10 +11,6 @@ initializeParse(
   "6aZHlL6cm2kX99WmKTATP7rZUCGvPmNNpFF76EqM"
 );
 
-interface TLanguage {
-  code: string;
-}
-
 interface TTranslation {
   data: TObjectNode;
 }
@@ -23,7 +19,6 @@ const { sessionId: initialSessionId } = getUrlParams();
 
 type UseParseResult = {
   data?: TObjectNode;
-  supportedLanguages: string[];
   onAdd?: (id: string, type: NodeType, label: string) => void;
   onChangeValue?: (id: string, language: string, value: string) => void;
   onRemove?: (id: string) => void;
@@ -31,16 +26,6 @@ type UseParseResult = {
 };
 
 export function useParse(): UseParseResult {
-  const { results: supportedLanguages } = useParseQuery<
-    Parse.Object<TLanguage>
-  >(
-    useMemo(() => new Parse.Query("Language"), []),
-    {
-      enableLocalDatastore: true,
-      enableLiveQuery: false,
-    }
-  );
-
   const [sessionId, setSession] = useState(initialSessionId);
   const { results: translations } = useParseQuery<Parse.Object<TTranslation>>(
     useMemo(() => {
@@ -81,8 +66,6 @@ export function useParse(): UseParseResult {
   };
   return {
     data,
-    supportedLanguages:
-      supportedLanguages?.map(({ attributes: { code } }) => code) || [],
     onAdd:
       data &&
       ((id: string, type: NodeType, label: string) =>

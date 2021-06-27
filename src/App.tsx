@@ -10,14 +10,7 @@ import Import from "./Import";
 import Export from "./Export";
 
 export default function App() {
-  const {
-    data,
-    supportedLanguages,
-    onAdd,
-    onChangeValue,
-    onRemove,
-    onImportJson,
-  } = useParse();
+  const { data, onAdd, onChangeValue, onRemove, onImportJson } = useParse();
 
   const [languages, setLanguages] = useState<string[]>([]);
 
@@ -33,10 +26,7 @@ export default function App() {
   return (
     <AppContainer>
       <TopBar>
-        <LanguagesSelection
-          supportedLanguages={supportedLanguages}
-          onSelectionChange={setLanguages}
-        />
+        <LanguagesSelection onSelectionChange={setLanguages} />
         <TreeCollapse
           collapseAll={collapseAll}
           onCollapseAll={setCollapseAll}
