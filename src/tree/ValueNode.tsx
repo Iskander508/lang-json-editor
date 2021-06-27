@@ -1,5 +1,4 @@
 import { useState, useContext, useEffect, useCallback } from "react";
-import SmoothCollapse from "react-smooth-collapse";
 import ControlsContainer from "./components/ControlsContainer";
 import styled from "styled-components";
 import { TreeContext } from "./Context";
@@ -10,7 +9,6 @@ import {
 } from "./components/TranslateButton";
 import { Problem, extractPlaceholders } from "./problem";
 import { isEqual } from "lodash";
-import { SourceMatch } from "./components/SourceMatch";
 import { TValueNode } from "../protocol";
 
 type TValueProps = {
@@ -39,12 +37,11 @@ function Value({
 }: TValueProps) {
   const [autoFocus, setAutoFocus] = useState(false);
   const [focused, setFocused] = useState(false);
-  const [inputStyle, setInputStyle] =
-    useState<{
-      width: number;
-      height: number;
-      maxWidth: number;
-    }>();
+  const [inputStyle, setInputStyle] = useState<{
+    width: number;
+    height: number;
+    maxWidth: number;
+  }>();
   useEffect(() => {
     if (!editing) {
       setAutoFocus(false);
@@ -64,7 +61,7 @@ function Value({
 
   return (
     <ValueContainer>
-      <LanguageTag>{language}</LanguageTag>
+      <LanguageTag>{language.toUpperCase()}</LanguageTag>
       {editing ? (
         <>
           <ValueEditor
@@ -139,7 +136,6 @@ type TValueNodeProps = {
 };
 export function ValueNode({ node }: TValueNodeProps) {
   const [showControls, setShowControls] = useState(false);
-  const [showSources, setShowSources] = useState(false);
   const [editing, setEditing] = useState(false);
   const [values, setValues] = useState(node.values);
   const {
@@ -149,8 +145,6 @@ export function ValueNode({ node }: TValueNodeProps) {
     problematicTranslations,
     disabled,
   } = useContext(TreeContext);
-
-  useEscapeKey(showSources ? () => setShowSources(false) : undefined);
 
   const onCancelEdit = useCallback(() => {
     setValues(node.values);
@@ -168,157 +162,127 @@ export function ValueNode({ node }: TValueNodeProps) {
       ?.filter(({ id }) => id === node.id)
       .map(({ problem }) => problem) || [];
 
-  const problemHints = [];
-  if (problems.includes(Problem.NO_MATCH_IN_SOURCES))
-    problemHints.push("\u26A0 No match found in the sources");
-  if (problems.includes(Problem.PARTIAL_MATCH_IN_SOURCES))
-    problemHints.push("\u26A0 Partial match in sourcefiles");
-
-  const hasSourceMatches =
-    node.exactSourceMatches?.length || node.partialSourceMatches?.length;
   return (
-    <>
-      <Container
-        onMouseEnter={() => setShowControls(true)}
-        onMouseLeave={() => setShowControls(false)}
-      >
-        <Label
-          title={
-            problemHints.length
-              ? `${node.id}\n${problemHints.join("\n")}`
-              : node.id
+    <Container
+      onMouseEnter={() => setShowControls(true)}
+      onMouseLeave={() => setShowControls(false)}
+    >
+      <Label title={node.id} problems={problems}>
+        {node.name}
+      </Label>
+      <ValuesContainer>
+        {languages?.map((language) => {
+          const value = values[language];
+          const issues = [];
+
+          if (
+            problems.includes(Problem.MISSING) &&
+            (value === undefined || value === null)
+          ) {
+            issues.push({
+              problem: Problem.MISSING,
+              hint: "\u26A0 issue: Missing value",
+            });
+          } else if (problems.includes(Problem.EMPTY) && !value?.trim()) {
+            issues.push({
+              problem: Problem.EMPTY,
+              hint: "\u26A0 Potential issue: Empty value",
+            });
           }
-          problems={problems}
-        >
-          {node.name}
-        </Label>
-        <ValuesContainer>
-          {languages?.map((language) => {
-            const value = values[language];
-            const issues = [];
 
-            if (
-              problems.includes(Problem.MISSING) &&
-              (value === undefined || value === null)
-            ) {
-              issues.push({
-                problem: Problem.MISSING,
-                hint: "\u26A0 issue: Missing value",
-              });
-            } else if (problems.includes(Problem.EMPTY) && !value?.trim()) {
-              issues.push({
-                problem: Problem.EMPTY,
-                hint: "\u26A0 Potential issue: Empty value",
-              });
-            }
+          if (problems.includes(Problem.DEFAULT) && value === node.id) {
+            issues.push({
+              problem: Problem.DEFAULT,
+              hint: `\u26A0 Potential issue: Default value used "${value}"`,
+            });
+          }
 
-            if (problems.includes(Problem.DEFAULT) && value === node.id) {
-              issues.push({
-                problem: Problem.DEFAULT,
-                hint: `\u26A0 Potential issue: Default value used "${value}"`,
-              });
-            }
-
-            if (problems.includes(Problem.SAME)) {
-              const sameAsLanguage = Object.keys(values).find(
-                (l) => l !== language && values[l] === value
-              );
-              if (sameAsLanguage)
-                issues.push({
-                  problem: Problem.SAME,
-                  hint: `\u26A0 Potential issue: The same as the "${sameAsLanguage}" version`,
-                });
-            }
-
-            if (problems.includes(Problem.PLACEHOLDER_MISMATCH)) {
-              const differentInLanguage = Object.keys(values).find(
-                (l) =>
-                  l !== language &&
-                  !isEqual(
-                    extractPlaceholders(values[l]),
-                    extractPlaceholders(value)
-                  )
-              );
-              if (differentInLanguage)
-                issues.push({
-                  problem: Problem.PLACEHOLDER_MISMATCH,
-                  hint: `\u26A0 Potential issue: Different placeholders from the "${differentInLanguage}" version`,
-                });
-            }
-
-            const hintLanguage = Object.keys(values).find(
-              (l) => l !== language && values[l] && values[l] !== node.id
+          if (problems.includes(Problem.SAME)) {
+            const sameAsLanguage = Object.keys(values).find(
+              (l) => l !== language && values[l] === value
             );
+            if (sameAsLanguage)
+              issues.push({
+                problem: Problem.SAME,
+                hint: `\u26A0 Potential issue: The same as the "${sameAsLanguage}" version`,
+              });
+          }
 
-            return (
-              <Value
-                key={language}
-                language={language}
-                editing={editing}
-                issues={issues}
-                value={value}
-                hintForTranslation={
-                  hintLanguage
-                    ? {
-                        language: hintLanguage,
-                        value: values[hintLanguage],
-                      }
-                    : undefined
-                }
-                onChange={(v) => setValues({ ...values, [language]: v })}
-                onEdit={(v) => {
-                  setEditing(!disabled && v);
-                  if (!v) {
-                    setValues(node.values);
-                  }
-                }}
-              />
+          if (problems.includes(Problem.PLACEHOLDER_MISMATCH)) {
+            const differentInLanguage = Object.keys(values).find(
+              (l) =>
+                l !== language &&
+                !isEqual(
+                  extractPlaceholders(values[l]),
+                  extractPlaceholders(value)
+                )
             );
-          })}
-        </ValuesContainer>
-        <ControlsContainer
-          visible={showControls || showSources}
-          editing={editing}
-          onBeginEdit={disabled ? undefined : () => setEditing(true)}
-          onConfirmEdit={
-            disabled
-              ? undefined
-              : () => {
-                  languages?.forEach((language) => {
-                    const newValue = values[language];
-                    const oldValue = node.values[language];
-                    if (newValue !== oldValue) {
-                      onChangeValue?.(node.id, language, newValue);
+            if (differentInLanguage)
+              issues.push({
+                problem: Problem.PLACEHOLDER_MISMATCH,
+                hint: `\u26A0 Potential issue: Different placeholders from the "${differentInLanguage}" version`,
+              });
+          }
+
+          const hintLanguage = Object.keys(values).find(
+            (l) => l !== language && values[l] && values[l] !== node.id
+          );
+
+          return (
+            <Value
+              key={language}
+              language={language}
+              editing={editing}
+              issues={issues}
+              value={value}
+              hintForTranslation={
+                hintLanguage
+                  ? {
+                      language: hintLanguage,
+                      value: values[hintLanguage],
                     }
-                  });
-                  setEditing(false);
+                  : undefined
+              }
+              onChange={(v) => setValues({ ...values, [language]: v })}
+              onEdit={(v) => {
+                setEditing(!disabled && v);
+                if (!v) {
+                  setValues(node.values);
                 }
-          }
-          onCancelEdit={disabled ? undefined : onCancelEdit}
-          onRemove={
-            disabled
-              ? undefined
-              : () => {
-                  onRemove?.(node.id);
-                }
-          }
-          onSources={
-            hasSourceMatches ? () => setShowSources((s) => !s) : undefined
-          }
-          copyString={node.id}
-        />
-      </Container>
-      <Sources>
-        <SmoothCollapse expanded={showSources}>
-          {node.exactSourceMatches?.map((match, index) => (
-            <SourceMatch key={`exact-${index}`} {...match} />
-          ))}
-          {node.partialSourceMatches?.map((match, index) => (
-            <SourceMatch key={`partial-${index}`} {...match} />
-          ))}
-        </SmoothCollapse>
-      </Sources>
-    </>
+              }}
+            />
+          );
+        })}
+      </ValuesContainer>
+      <ControlsContainer
+        visible={showControls}
+        editing={editing}
+        onBeginEdit={disabled ? undefined : () => setEditing(true)}
+        onConfirmEdit={
+          disabled
+            ? undefined
+            : () => {
+                languages?.forEach((language) => {
+                  const newValue = values[language];
+                  const oldValue = node.values[language];
+                  if (newValue !== oldValue) {
+                    onChangeValue?.(node.id, language, newValue);
+                  }
+                });
+                setEditing(false);
+              }
+        }
+        onCancelEdit={disabled ? undefined : onCancelEdit}
+        onRemove={
+          disabled
+            ? undefined
+            : () => {
+                onRemove?.(node.id);
+              }
+        }
+        copyString={node.id}
+      />
+    </Container>
   );
 }
 
@@ -336,10 +300,6 @@ const Label = styled.div`
       ? "salmon"
       : problems.includes(Problem.EMPTY) || problems.includes(Problem.DEFAULT)
       ? "moccasin"
-      : problems.includes(Problem.NO_MATCH_IN_SOURCES)
-      ? "lightgray"
-      : problems.includes(Problem.PARTIAL_MATCH_IN_SOURCES)
-      ? "darkseagreen"
       : problems.length
       ? "lightcyan"
       : "lightgreen"};
@@ -359,11 +319,6 @@ const LanguageTag = styled.span`
   padding: 0 8px;
   color: white;
   background-color: black;
-`;
-
-const Sources = styled.div`
-  padding-left: 20px;
-  margin-bottom: 4px;
 `;
 
 const ValueContainer = styled.div`

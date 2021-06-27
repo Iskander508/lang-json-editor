@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NodeType, TObjectNode, TSourceMatch } from "../protocol";
+import { NodeType, TObjectNode } from "../protocol";
 import {
   findProblems,
   NO_PROBLEM,
@@ -20,7 +20,6 @@ type TFilter = {
 type TreeProps = {
   data: TObjectNode;
   languages?: string[];
-  sourceMatches?: TSourceMatch[];
   filter: TFilter;
   onAdd?: (id: string, type: NodeType, label: string) => void;
   onChangeValue?: (id: string, language: string, value: string) => void;
@@ -33,7 +32,6 @@ type TreeProps = {
 export default function Tree({
   data,
   languages,
-  sourceMatches,
   filter: { text: textFilter, caseSensitive, problems: problemsFilter },
   onAdd,
   onChangeValue,
@@ -46,9 +44,9 @@ export default function Tree({
     useState<TFindProblemsResult>([]);
   useEffect(() => {
     if (languages?.length) {
-      setProblematicTranslations(findProblems(data, languages, sourceMatches));
+      setProblematicTranslations(findProblems(data, languages));
     }
-  }, [sourceMatches, data, languages]);
+  }, [data, languages]);
 
   const [textFilteredIds, setTextFilteredIds] = useState<string[]>();
   useEffect(() => {

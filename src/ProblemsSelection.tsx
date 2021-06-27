@@ -3,12 +3,10 @@ import { Problem, NO_PROBLEM } from "./tree/problem";
 import styled from "styled-components";
 
 export type SelectedProblem = Problem | typeof NO_PROBLEM;
-export const ALL_PROBLEMS = (
-  [NO_PROBLEM, ...Object.values(Problem)] as Array<SelectedProblem>
-).filter(
-  (p) =>
-    p !== Problem.NO_MATCH_IN_SOURCES && p !== Problem.PARTIAL_MATCH_IN_SOURCES
-);
+export const ALL_PROBLEMS: Array<SelectedProblem> = [
+  NO_PROBLEM,
+  ...Object.values(Problem),
+];
 
 export default function ProblemsSelection(props: {
   filteredProblems: Array<SelectedProblem>;

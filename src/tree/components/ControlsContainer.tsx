@@ -17,7 +17,6 @@ type TControlsContainerProps = {
   onConfirmEdit?: () => void;
   onCancelEdit?: () => void;
   onBeginEdit?: () => void;
-  onSources?: () => void;
   copyString?: string;
 };
 
@@ -29,7 +28,6 @@ export const ControlsContainer = ({
   onConfirmEdit,
   onCancelEdit,
   onBeginEdit = () => {},
-  onSources,
   copyString,
 }: TControlsContainerProps) => {
   const [mode, setMode] = useState(
@@ -89,7 +87,6 @@ export const ControlsContainer = ({
               onBeginEdit?.();
             })
           }
-          onSources={onSources}
         />
       );
   }

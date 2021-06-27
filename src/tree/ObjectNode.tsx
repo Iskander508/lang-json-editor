@@ -55,8 +55,6 @@ export function ObjectNode({ node }: TObjectNodeProps) {
     ? Problem.MISSING
     : problems?.includes(Problem.EMPTY)
     ? Problem.EMPTY
-    : problems?.includes(Problem.NO_MATCH_IN_SOURCES)
-    ? Problem.NO_MATCH_IN_SOURCES
     : problems?.includes(Problem.DEFAULT)
     ? Problem.DEFAULT
     : problems?.includes(Problem.SAME)
@@ -176,8 +174,6 @@ const getLabelBackground = ({
       return expanded ? "white" : "moccasin";
     case Problem.SAME:
       return expanded ? "white" : "lightcyan";
-    case Problem.NO_MATCH_IN_SOURCES:
-      return expanded ? "white" : "lightgrey";
     default:
       return expanded ? "mintcream" : "lightgreen";
   }

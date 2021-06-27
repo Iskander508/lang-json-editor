@@ -5,7 +5,6 @@ import {
   cancel,
   trash,
   copy,
-  code,
   section,
   value,
 } from "../images";
@@ -86,7 +85,6 @@ export function MainControls({
   onAdd,
   onRemove,
   onEdit,
-  onSources,
   copyString,
 }: TMainControlsProps) {
   return (
@@ -96,11 +94,6 @@ export function MainControls({
         onAdd && { name: "add", image: add, callback: onAdd },
         onRemove && { name: "remove", image: trash, callback: onRemove },
         onEdit && { name: "edit", image: edit, callback: onEdit },
-        onSources && {
-          name: "show in sources",
-          image: code,
-          callback: onSources,
-        },
       ]}
       copyString={copyString}
     />
