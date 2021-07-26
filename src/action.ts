@@ -113,6 +113,31 @@ export function importJson(
 
   Object.keys(data).forEach((key) => {
     const value = data[key];
+
+    if (key.includes(".")) {
+      const splitPosition = key.indexOf(".");
+      const name = key.substring(0, splitPosition);
+      const rest = key.substring(splitPosition + 1);
+      const id = result.id ? `${result.id}.${name}` : name;
+      let node = result.children.find(({ id: nodeId }) => nodeId === id);
+      if (node?.type === NodeType.VALUE) {
+        throw new Error(
+          `Mismatch types: ${id}: current=${node.type}, imported=${NodeType.OBJECT}`
+        );
+      }
+      if (!node) {
+        node = {
+          id,
+          name,
+          type: NodeType.OBJECT,
+          children: [],
+        };
+        result.children.push(node);
+      }
+      importJson(node, { [rest]: value }, language, true);
+      return;
+    }
+
     const type = typeof value === "string" ? NodeType.VALUE : NodeType.OBJECT;
     const current = result.children.find(({ name }) => name === key);
 
